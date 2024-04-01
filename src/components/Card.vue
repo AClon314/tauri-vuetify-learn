@@ -1,17 +1,19 @@
 <template>
-  <v-card class="mx-auto" max-width="344">
+  <v-card class="mx-auto">
     <v-img
-      height="200px"
-      src="https://cdn.vuetifyjs.com/images/cards/sunshine.jpg"
+      height="300px"
+      :width="(imgWH[0] * 300) / imgWH[1]"
+      :src="img.src"
       cover
-    ></v-img>
+      ></v-img
+    >
 
-    <v-card-title> Top western road trips </v-card-title>
+    <v-card-title> {{ title }} </v-card-title>
 
-    <v-card-subtitle> 1,000 miles of wonder </v-card-subtitle>
+    <v-card-subtitle> {{ subtitle }} </v-card-subtitle>
 
     <v-card-actions>
-      <v-btn color="orange-lighten-2" variant="text"> Explore </v-btn>
+      <v-btn color="primary" variant="text"> 设置壁纸 </v-btn>
 
       <v-spacer></v-spacer>
 
@@ -25,15 +27,30 @@
       <div v-show="show">
         <v-divider></v-divider>
 
-        <v-card-text>{{ detailInfo }} </v-card-text>
+        <v-card-text>
+          <pre>{{ detailInfo }}</pre>
+        </v-card-text>
       </div>
     </v-expand-transition>
   </v-card>
 </template>
-<script>
-export default {
-  data: () => ({
-    show: false,
-  }),
-};
+<script lang="ts" setup>
+import { ref, onMounted } from "vue";
+
+const imgWH = ref([0, 0]);
+const show = ref(false);
+const img = ref(new Image());
+const props = defineProps({
+  src: String,
+  title: String,
+  subtitle: String,
+  detailInfo: String,
+});
+onMounted(() => {
+  img.value.src = props.src ?? "error";
+  img.value.onload = () => {
+    imgWH.value = [img.value.width, img.value.height];
+  };
+  console.log(img.value);
+});
 </script>

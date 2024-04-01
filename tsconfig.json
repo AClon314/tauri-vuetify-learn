@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    // "target": "ES2020",
     "useDefineForClassFields": true,
     "jsx": "preserve",
     "lib": [
@@ -30,7 +29,7 @@
     "allowJs": true,
     "strict": true,
     "strictNullChecks": true,
-    "noUnusedLocals": true,
+    // "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,

@@ -1,0 +1,1 @@
+https://beta.tauri.app/references/v2/config

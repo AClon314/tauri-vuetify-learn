@@ -1,32 +1,55 @@
 {
-    "$schema": "../gen/schemas/desktop-schema.json",
-    "identifier": "desktop-capability",
-    "windows": [
-        "main"
-    ],
-    "platforms": [
-        "linux",
-        "macOS",
-        "windows"
-    ],
-    "permissions": [
-        "path:default",
-        "event:default",
-        "window:default",
-        "app:default",
-        "resources:default",
-        "menu:default",
-        "tray:default",
-        "window:allow-set-title",
-        "window:allow-minimize",
-        "window:allow-is-maximized",
-        "window:allow-toggle-maximize",
-        "window:allow-close",
-        "window:allow-start-dragging",
-        "image:default",
-        "fs:default",{
-            "identifier":"fs:allow-picture-read",
-            "allow": [{"path": "$PICTURE/*"}]
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "desktop-capability",
+  "windows": [
+    "main"
+  ],
+  "platforms": [
+    "linux",
+    "macOS",
+    "windows"
+  ],
+  "permissions": [
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "**/*"
         }
-    ]
+      ]
+    },
+    "path:default",
+    "event:default",
+    "app:default",
+    "resources:default",
+    "menu:default",
+    "tray:default",
+    "image:default",
+    "fs:default",
+    "fs:allow-exists",
+    "fs:read-all",
+    "fs:allow-picture-read",
+    "fs:allow-read-dir",
+    "fs:allow-read-file",
+    "fs:allow-stat",
+    "window:default",
+    "window:allow-set-title",
+    "window:allow-minimize",
+    "window:allow-toggle-maximize",
+    "window:allow-close",
+    "window:allow-start-dragging",
+    "window:allow-is-maximized",
+    "window:allow-is-minimized",
+    "window:allow-is-closable",
+    "window:allow-is-focused",
+    "webview:allow-internal-toggle-devtools",
+    "webview:default"
+  ],
+  "security": {
+    "assetProtocol": {
+      "enable": true,
+      "scope": ["**/*"]
+    },
+    "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost"
+  }
 }

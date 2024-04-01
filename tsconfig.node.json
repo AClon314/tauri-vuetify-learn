@@ -8,6 +8,5 @@
   },
   "include": [
     "vite.config.mts"
-  ],
-  "extends": "./tsconfig.json",
+  ]
 }
