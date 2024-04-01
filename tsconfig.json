@@ -11,7 +11,6 @@
     // "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
     "module": "ESNext",
-
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     // "moduleResolution": "node",
@@ -22,7 +21,6 @@
     },
     "resolveJsonModule": true,
     "noEmit": true,
-
     /* Linting */
     "types": [
       "vite/client",

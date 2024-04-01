@@ -16,7 +16,7 @@ import { internalIpV4 } from "internal-ip";
 const mobile = !!/android|ios/.exec(process.env.TAURI_ENV_PLATFORM);
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(async () => ({
   plugins: [
     VueRouter({
       dts: 'src/typed-router.d.ts',
@@ -77,7 +77,7 @@ export default defineConfig({
   clearScreen:false,
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
-    port: 3000,
+    port: 1420,
     strictPort: true,
     host: mobile ? "0.0.0.0" : false,
     hmr: mobile
@@ -92,4 +92,4 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
-})
+}));
