@@ -44,12 +44,5 @@
     "window:allow-is-focused",
     "webview:allow-internal-toggle-devtools",
     "webview:default"
-  ],
-  "security": {
-    "assetProtocol": {
-      "enable": true,
-      "scope": ["**/*"]
-    },
-    "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost"
-  }
+  ]
 }

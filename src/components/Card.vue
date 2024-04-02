@@ -1,8 +1,7 @@
 <template>
-  <v-card class="mx-auto">
+  <v-card class="mx-auto" :width="(imgWH[0] * 300) / imgWH[1]">
     <v-img
       height="300px"
-      :width="(imgWH[0] * 300) / imgWH[1]"
       :src="img.src"
       cover
       ></v-img
@@ -27,8 +26,8 @@
       <div v-show="show">
         <v-divider></v-divider>
 
-        <v-card-text>
-          <pre>{{ detailInfo }}</pre>
+        <v-card-text style="white-space: pre-line;">
+          {{ detailInfo }}
         </v-card-text>
       </div>
     </v-expand-transition>
@@ -51,6 +50,5 @@ onMounted(() => {
   img.value.onload = () => {
     imgWH.value = [img.value.width, img.value.height];
   };
-  console.log(img.value);
 });
 </script>

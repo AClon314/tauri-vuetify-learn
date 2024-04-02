@@ -9,17 +9,30 @@
         "android"
     ],
     "permissions": [
+        "path:default",
+        "path:allow-resolve-directory",
+        "event:default",
+        "event:allow-listen",
+        "app:default",
+        "resources:default",
+        "menu:default",
+        "tray:default",
+        "image:default",
         "webview:allow-internal-toggle-devtools",
         "webview:default",
+        "window:default",
         "fs:default",
+        "fs:allow-exists",
+        "fs:read-all",
+        "fs:allow-picture-read",
+        "fs:allow-read-dir",
+        "fs:allow-read-file",
+        "fs:allow-stat",
         {
             "identifier": "fs:scope",
             "allow": [
                 {
-                    "path": "$APPDATA"
-                },
-                {
-                    "path": "$APPDATA/**"
+                    "path": "**/*"
                 }
             ]
         }

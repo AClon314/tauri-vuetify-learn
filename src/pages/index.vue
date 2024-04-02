@@ -1,14 +1,16 @@
 <template>
-  <h3>{{ ipv4 }}{{ isTauri }}</h3>
-  <div style="display: flex; flex-wrap: wrap">
-    <Card
-      v-for="(img, n) in imgs"
-      :src="img.path"
-      :title="strEllipsis(img.name, 38)"
-      :subtitle="stat2sub(img.stat)"
-      :detail-info="file2detail(img)"
-      style="margin-bottom: 1em"
-    />
+  <div style="word-wrap: break-word;">
+    <p>{{ pictureDirPath }}<br />{{ ipv4 }}<br />{{ isTauri }}</p>
+    <div style="display: flex; flex-wrap: wrap">
+      <Card
+        v-for="(img, n) in imgs"
+        :src="img.url"
+        :title="strEllipsis(img.name, 38)"
+        :subtitle="stat2sub(img.stat)"
+        :detail-info="file2detail(img)"
+        style="margin-bottom: 1em"
+      />
+    </div>
   </div>
 </template>
 
@@ -32,9 +34,10 @@ import { pictureDir, join } from "@tauri-apps/api/path";
 
 const isTauri = inject("isTauri");
 const imgs = ref();
-const pictureDirPath = await pictureDir();
+const pictureDirPath = ref();
 
 if (isTauri) {
+  pictureDirPath.value = await pictureDir();
   ls(BaseDirectory.Picture, "").then((paths) => {
     imgs.value = paths.filter(
       (p) =>
@@ -52,30 +55,24 @@ if (isTauri) {
     { path: "https://i.imgur.com/o4Hqucc.gif", name: "当前非tauri环境" },
   ];
 }
+
 async function ls(base: BaseDirectory, dir: string, recursive = false) {
   const entries = await readDir(dir, { baseDir: base });
   const paths = [];
   for (const entry of entries) {
     const reletivePath = (dir ? dir + "/" : "") + entry.name;
     const fileInfo = await stat(reletivePath, { baseDir: base });
-    const absPath = await join(pictureDirPath, reletivePath);
+    const absPath = await join(pictureDirPath.value, reletivePath);
     if (paths.length > 20) {
       break;
     }
     paths.push({
       name: entry.name,
-      path: convertFileSrc(absPath),
+      url: convertFileSrc(absPath),
+      path: absPath,
       stat: fileInfo,
     });
   }
-  // if (recursive) {
-  //   for (const entry of entries) {
-  //     if (entry.isDirectory) {
-  //       paths.push(...await ls(base, (dir?dir+'/':'')+entry.name, true));
-  //     }
-  //   }
-  // }
-  console.log(paths);
   return paths;
 }
 
@@ -85,21 +82,27 @@ function stat2sub(stat: FileInfo | undefined) {
   if (!stat) return "";
   return `${prettyBytes(stat.size ?? 0)}`;
 }
-function file2detail(file: any | undefined) {
-  if (!file) return "";
-  return `创建时间：${format(
+function file2detail(file: any) {
+  try{
+    return `创建时间: ${format(
     file.stat.birthtime ?? "",
     "yyyy-MM-dd HH:mm:ss"
-  )}\n修改时间：${format(
+  )}\n修改时间: ${format(
     file.stat.mtime ?? "",
     "yyyy-MM-dd HH:mm:ss"
-  )}\n路径：${file.path}`;
+  )}\n路径: ${file.path}`;
+  }catch{
+    return 'file2detail Err'
+  }
 }
-function strEllipsis(str: string | undefined, len: number) {
-  if (!str) return "";
-  return (
+function strEllipsis(str: string, len: number) {
+  try{
+    return (
     str.substring(0, Math.min(str.lastIndexOf("."), len)) +
       (str.length > len ? "..." : "") || str
   );
+  }catch{
+    return 'strEllipsis Err'
+  }
 }
 </script>
