@@ -1,5 +1,5 @@
 <template>
-  <div style="word-wrap: break-word;">
+  <div style="word-wrap: break-word">
     <p>{{ pictureDirPath }}<br />{{ ipv4 }}<br />{{ isTauri }}</p>
     <div style="display: flex; flex-wrap: wrap">
       <Card
@@ -31,6 +31,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { pictureDir, join } from "@tauri-apps/api/path";
+// import * as tp from "@tauri-apps/api/path";
 
 const isTauri = inject("isTauri");
 const imgs = ref();
@@ -38,7 +39,7 @@ const pictureDirPath = ref();
 
 if (isTauri) {
   pictureDirPath.value = await pictureDir();
-  ls(BaseDirectory.Picture, "").then((paths) => {
+  ls(BaseDirectory.Picture, "Pixiv").then((paths) => {
     imgs.value = paths.filter(
       (p) =>
         p.name.endsWith(".jpg") ||
@@ -49,10 +50,10 @@ if (isTauri) {
 } else {
   imgs.value = [
     {
-      path: "https://cdn.vuetifyjs.com/images/cards/sunshine.jpg",
+      url: "https://cdn.vuetifyjs.com/images/cards/sunshine.jpg",
       name: "宇宙",
     },
-    { path: "https://i.imgur.com/o4Hqucc.gif", name: "当前非tauri环境" },
+    { url: "https://i.imgur.com/o4Hqucc.gif", name: "当前非tauri环境" },
   ];
 }
 
@@ -83,26 +84,26 @@ function stat2sub(stat: FileInfo | undefined) {
   return `${prettyBytes(stat.size ?? 0)}`;
 }
 function file2detail(file: any) {
-  try{
+  try {
     return `创建时间: ${format(
-    file.stat.birthtime ?? "",
-    "yyyy-MM-dd HH:mm:ss"
-  )}\n修改时间: ${format(
-    file.stat.mtime ?? "",
-    "yyyy-MM-dd HH:mm:ss"
-  )}\n路径: ${file.path}`;
-  }catch{
-    return 'file2detail Err'
+      file.stat.birthtime ?? "",
+      "yyyy-MM-dd HH:mm:ss"
+    )}\n修改时间: ${format(
+      file.stat.mtime ?? "",
+      "yyyy-MM-dd HH:mm:ss"
+    )}\n路径: ${file.path}`;
+  } catch {
+    return "file2detail Err";
   }
 }
 function strEllipsis(str: string, len: number) {
-  try{
+  try {
     return (
-    str.substring(0, Math.min(str.lastIndexOf("."), len)) +
-      (str.length > len ? "..." : "") || str
-  );
-  }catch{
-    return 'strEllipsis Err'
+      str.substring(0, Math.min(str.lastIndexOf("."), len)) +
+        (str.length > len ? "..." : "") || str
+    );
+  } catch {
+    return "strEllipsis Err";
   }
 }
 </script>

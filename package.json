@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "@mdi/font": "6.2.95",
-    "@tauri-apps/api": ">=2.0.0-beta.0",
+    "@tauri-apps/api": "2.0.0-beta.7",
     "@tauri-apps/plugin-fs": "^2.0.0-beta.2",
     "@tauri-apps/plugin-shell": ">=2.0.0-beta.0",
     "core-js": "^3.34.0",
@@ -9,12 +9,12 @@
     "pretty-bytes": "^6.1.1",
     "roboto-fontface": "*",
     "vue": "^3.4.21",
-    "vuetify": "^3.5.8"
+    "vuetify": "^3.5.15"
   },
   "devDependencies": {
     "@babel/types": "^7.24.0",
-    "@tauri-apps/cli": ">=2.0.0-beta.0",
-    "@types/node": "^20.11.25",
+    "@tauri-apps/cli": "2.0.0-beta.12",
+    "@types/node": "^20.12.7",
     "@vitejs/plugin-vue": "^5.0.4",
     "@vue/eslint-config-typescript": "^13.0.0",
     "eslint": "^8.57.0",
@@ -23,20 +23,20 @@
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-vue": "^9.22.0",
+    "eslint-plugin-vue": "^9.24.1",
     "internal-ip": "^7.0.0",
     "pinia": "^2.1.7",
-    "sass": "^1.71.1",
-    "typescript": "^5.4.2",
+    "sass": "^1.75.0",
+    "typescript": "^5.4.5",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-fonts": "^1.1.1",
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-router": "^0.8.4",
-    "vite": "^5.1.5",
+    "vite": "^5.2.8",
     "vite-plugin-vue-layouts": "^0.11.0",
     "vite-plugin-vuetify": "^2.0.3",
     "vue-router": "^4.3.0",
-    "vue-tsc": "^2.0.6"
+    "vue-tsc": "^2.0.12"
   },
   "name": "tauri-vuetify",
   "private": true,
