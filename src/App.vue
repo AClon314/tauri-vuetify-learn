@@ -8,6 +8,11 @@
 </template>
 
 <script lang="ts" setup>
-// @ts-ignore
-provide("isTauri", window.__TAURI_INTERNALS__);
+provide("isTauri",
+  Boolean(
+      window != undefined &&
+      (window as any).__TAURI_INTERNALS__ !== undefined
+  )
+);
+provide("isPC", navigator.userAgent.indexOf("Mobile") == -1);
 </script>

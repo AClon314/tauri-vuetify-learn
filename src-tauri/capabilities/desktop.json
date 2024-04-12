@@ -10,14 +10,6 @@
     "windows"
   ],
   "permissions": [
-    {
-      "identifier": "fs:scope",
-      "allow": [
-        {
-          "path": "**/*"
-        }
-      ]
-    },
     "path:default",
     "event:default",
     "app:default",
@@ -43,6 +35,30 @@
     "window:allow-is-closable",
     "window:allow-is-focused",
     "webview:allow-internal-toggle-devtools",
-    "webview:default"
+    "webview:default",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "**/*"
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "exec-sh",
+          "cmd": "sh",
+          "args": [
+            "-c",
+            {
+              "validator": "\\S+"
+            }
+          ],
+          "sidecar": false
+        }
+      ]
+    }
   ]
 }

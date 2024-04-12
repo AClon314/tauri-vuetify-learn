@@ -1,16 +1,24 @@
 <template>
   <div style="word-wrap: break-word">
-    <p>{{ pictureDirPath }}<br />{{ ipv4 }}<br />{{ isTauri }}</p>
-    <div style="display: flex; flex-wrap: wrap">
-      <Card
-        v-for="(img, n) in imgs"
-        :src="img.url"
-        :title="strEllipsis(img.name, 38)"
-        :subtitle="stat2sub(img.stat)"
-        :detail-info="file2detail(img)"
-        style="margin-bottom: 1em"
-      />
-    </div>
+    <v-btn>指定文件夹</v-btn>
+    {{ pictureDirPath }}
+    <p>{{ ipv4 }}{{ isTauri }}</p>
+    <a
+      v-if="isTauri"
+      @click="cmd('start http://localhost:1420/')"
+      href="javascript:;"
+      >浏览器</a
+    >
+  </div>
+  <div style="display: flex; flex-wrap: wrap">
+    <Card
+      v-for="(img, n) in imgs"
+      :src="img.url"
+      :title="strEllipsis(img.name, 38)"
+      :subtitle="stat2sub(img.stat)"
+      :detail-info="file2detail(img)"
+      style="margin-bottom: 1em"
+    />
   </div>
 </template>
 
@@ -75,6 +83,13 @@ async function ls(base: BaseDirectory, dir: string, recursive = false) {
     });
   }
   return paths;
+}
+
+import { Command } from "@tauri-apps/plugin-shell";
+async function cmd(cmd: string) {
+  const result = await Command.create("exec-sh", ["-c", cmd]).execute();
+  console.log(result);
+  return result;
 }
 
 import prettyBytes from "pretty-bytes";

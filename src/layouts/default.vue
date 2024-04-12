@@ -56,7 +56,7 @@
 <script lang="ts" setup>
 import { getCurrent as wd } from "@tauri-apps/api/window";
 import { useTheme } from "vuetify";
-const isPC = navigator.userAgent.indexOf("Mobile") == -1;
+const isPC = inject("isPC");
 const isFocused = ref(false);
 const isMaximized = ref(false);
 const isFullscreen = ref(false);
