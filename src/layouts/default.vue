@@ -39,7 +39,7 @@
         class="ms-2"
         icon="mdi-close"
         variant="text"
-        @click="() => wd().close()"
+        @click="() => {wd().close(); exit();}"
         size="small"
         v-if="isPC&&isTauri"
       ></v-btn>
@@ -92,6 +92,11 @@ onUnmounted(() => {
     unlisten.then((u) => u());
   }
 });
+
+function exit() {
+  window.close();
+}
+
 </script>
 <style scoped>
 .v-toolbar-title {

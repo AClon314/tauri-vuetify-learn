@@ -1,18 +1,33 @@
 <template>
   <div style="word-wrap: break-word">
-    <v-btn>指定文件夹</v-btn>
-    {{ pictureDirPath }}
-    <p>{{ ipv4 }}{{ isTauri }}</p>
-    <a
-      v-if="isTauri"
-      @click="cmd('start http://localhost:1420/')"
-      href="javascript:;"
-      >浏览器</a
-    >
+    <v-col>
+      <v-text-field
+        clearable
+        label="路径"
+        variant="underlined"
+        v-model="pictureDirPath"
+        append-icon="mdi-send"
+        @click:append="refresh()"
+        @keydown.enter="refresh()"
+      ></v-text-field>
+      <v-btn @click="changeTextfield('/storage/emulated/0/Android/data/com.tauri.tauri_app/files/Pictures');">默认</v-btn>
+      <v-btn @click="changeTextfield('/storage/emulated/0/Android');">安卓</v-btn>
+      <v-btn @click="changeTextfield('/storage/emulated/0/DCIM/Screenshots');">DCIM</v-btn>
+      <v-btn @click="pageReload();">刷新</v-btn>
+
+      <p>{{ ipv4 }}{{ isTauri }}</p>
+      <a
+        v-if="isTauri"
+        @click="cmd('start http://localhost:1420/')"
+        href="javascript:;"
+        >浏览器</a
+      >
+    </v-col>
   </div>
   <div style="display: flex; flex-wrap: wrap">
     <Card
       v-for="(img, n) in imgs"
+      :key="img.url"
       :src="img.url"
       :title="strEllipsis(img.name, 38)"
       :subtitle="stat2sub(img.stat)"
@@ -38,40 +53,54 @@ import {
   FileInfo,
 } from "@tauri-apps/plugin-fs";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { pictureDir, join } from "@tauri-apps/api/path";
-// import * as tp from "@tauri-apps/api/path";
+import * as tauPath from "@tauri-apps/api/path";
 
 const isTauri = inject("isTauri");
 const imgs = ref();
 const pictureDirPath = ref();
+refresh();
 
-if (isTauri) {
-  pictureDirPath.value = await pictureDir();
-  ls(BaseDirectory.Picture, "Pixiv").then((paths) => {
+async function refresh() {
+  if (isTauri) {
+    let paths;
+    if (pictureDirPath.value == undefined) {
+      // init pictureDirPath
+      pictureDirPath.value = await tauPath.pictureDir();
+      paths = await ls(`${await bDir2str(BaseDirectory.Picture)}`);
+    }else{
+      paths = await ls(pictureDirPath.value);
+    }
     imgs.value = paths.filter(
       (p) =>
         p.name.endsWith(".jpg") ||
         p.name.endsWith(".png") ||
         p.name.endsWith(".jpeg")
     );
-  });
-} else {
-  imgs.value = [
-    {
-      url: "https://cdn.vuetifyjs.com/images/cards/sunshine.jpg",
-      name: "宇宙",
-    },
-    { url: "https://i.imgur.com/o4Hqucc.gif", name: "当前非tauri环境" },
-  ];
+  } else {
+    imgs.value = [
+      {
+        url: "https://cdn.vuetifyjs.com/images/cards/sunshine.jpg",
+        name: "宇宙",
+      },
+      { url: "https://i.imgur.com/o4Hqucc.gif", name: "当前非tauri环境" },
+    ];
+  }
 }
 
-async function ls(base: BaseDirectory, dir: string, recursive = false) {
-  const entries = await readDir(dir, { baseDir: base });
+function pageReload() {
+  location.reload();
+}
+
+async function bDir2str(base: BaseDirectory): Promise<string> {
+  return await eval(`tauPath.${BaseDirectory[base].toLocaleLowerCase()}Dir()`);
+}
+
+async function ls(dir: string, recursive = false) {
+  const entries = await readDir(dir);
   const paths = [];
   for (const entry of entries) {
-    const reletivePath = (dir ? dir + "/" : "") + entry.name;
-    const fileInfo = await stat(reletivePath, { baseDir: base });
-    const absPath = await join(pictureDirPath.value, reletivePath);
+    const absPath = await tauPath.join(dir, entry.name);
+    const fileInfo = await stat(absPath);
     if (paths.length > 20) {
       break;
     }
@@ -82,8 +111,13 @@ async function ls(base: BaseDirectory, dir: string, recursive = false) {
       stat: fileInfo,
     });
   }
+  console.log(paths);
   return paths;
 }
+
+const changeTextfield = (e: any) => {
+  pictureDirPath.value = e;
+};
 
 import { Command } from "@tauri-apps/plugin-shell";
 async function cmd(cmd: string) {
