@@ -3,14 +3,16 @@
     <v-slider
       thumb-label
       v-model="currentProgress"
-      density="compact"
+      color="primary"
+      track-color="primary"
       :max="duration"
-      style="position: absolute; margin-bottom: 50px; z-index: 1; width: 95%"
+      style="position: fixed; top: -15px; width: calc(100% - 45px)"
     ></v-slider>
     <v-img
       min-width="64px"
-      :src="current?.cover"
       draggable="false"
+      style="z-index: -1"
+      :src="current?.cover"
       :inline="true"
     ></v-img>
 
@@ -20,15 +22,17 @@
       <span class="v-list-item-subtitle">{{ current?.path }}</span>
     </div>
 
+    <v-spacer></v-spacer>
+
     <v-text-field
       v-model="currentProgress"
       density="compact"
-      style="max-width: 80px"
+      style="max-width: 80px; margin-bottom: 8px"
       type="number"
-      variant="outlined"
+      variant="underlined"
       hide-details
     ></v-text-field
-    >/{{ duration }}
+    >/{{ duration.toFixed(0) }}
 
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
@@ -36,13 +40,14 @@
       variant="text"
       :icon="isPlaying ? 'mdi-pause' : 'mdi-play'"
     ></v-btn>
-    <v-btn @click="next" variant="text" icon="mdi-skip-next"></v-btn>
+    <v-btn @click="next()" variant="text" icon="mdi-skip-next"></v-btn>
   </v-footer>
 </template>
 
 <script lang="ts" setup>
 import { MediaItem } from "@/types";
 import { useAppStore } from "@/stores/app";
+import { app } from "@tauri-apps/api";
 const appStore = useAppStore();
 const props = defineProps({
   current: {
@@ -66,32 +71,48 @@ function formatTime(time: Ref<number>) {
 }
 
 onUpdated(() => {
-  pause();
+  pause(0);
   currentProgress.value = 0;
+  refresh();
+  if (audio) play();
+});
+
+onUnmounted(() => {
+  pause();
+  audio = null;
+});
+
+watch(currentProgress, (newTime) => {
+  if (audio && Math.abs(newTime - audio.currentTime) > 0.5)
+    audio.currentTime = newTime;
+});
+
+async function refresh() {
+  audio?.pause();
   if (props.current && props.current.url) {
     audio = new Audio(props.current.url);
     audio.onloadedmetadata = () => {
       if (audio) duration.value = audio.duration;
-      play();
     };
     audio.onerror = () => {
       console.error("Failed to load audio");
     };
-    // audio.onended = () => {
-    //   next();
-    // };
+    audio.onended = () => {
+      next();
+    };
+  } else {
+    appStore.err.msg = `skipping ${props.current?.name}`;
+    appStore.err.show = true;
+    console.error("Current media", props.current);
+    next();
   }
-});
-
-watch(currentProgress, (newTime) => {
-  if (audio && Math.abs(newTime - audio.currentTime) > 0.2)
-    audio.currentTime = newTime;
-});
+}
 
 async function play() {
   if (props.current && props.current.url && audio) {
-    audio.currentTime = currentProgress.value;
-    audio.play();
+    audio.play().catch((e) => {
+      console.error("Failed to play audio", e);
+    });
     audio.ontimeupdate = () => {
       if (audio) currentProgress.value = audio.currentTime;
     };
@@ -99,10 +120,11 @@ async function play() {
   }
 }
 
-async function pause() {
+async function pause(goto: number | null = null) {
   if (props.current && props.current.url && audio) {
     audio.pause();
     isPlaying = false;
+    if (goto !== null) currentProgress.value = goto;
   }
 }
 
@@ -115,10 +137,8 @@ async function switchPlay() {
 }
 
 async function next(add: number = 1) {
-  if (props.current && props.current.url && audio) {
-    currentProgress.value = 0;
-    pause();
-    appStore.addCurrentId(add);
-  }
+  pause(0);
+  appStore.addCurrentId(add);
+  appStore.setSelected([appStore.currentMediaId]);
 }
 </script>

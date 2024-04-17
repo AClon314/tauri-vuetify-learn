@@ -23,7 +23,7 @@
         variant="text"
         @click="() => wd().minimize()"
         size="small"
-        v-if="isPC&&isTauri"
+        v-if="isPC && isTauri"
       ></v-btn>
       <v-btn
         class="ms-2"
@@ -33,15 +33,20 @@
         variant="text"
         @click="() => wd().toggleMaximize()"
         size="small"
-        v-if="isPC&&isTauri"
+        v-if="isPC && isTauri"
       ></v-btn>
       <v-btn
         class="ms-2"
         icon="mdi-close"
         variant="text"
-        @click="() => {wd().close(); exit();}"
+        @click="
+          () => {
+            wd().close();
+            exit();
+          }
+        "
         size="small"
-        v-if="isPC&&isTauri"
+        v-if="isPC && isTauri"
       ></v-btn>
     </v-app-bar>
 
@@ -49,21 +54,28 @@
       <router-view />
     </v-main>
 
-    <AppFooter :current="appStore.myMediaList[appStore.currentMediaId]"/>
+    <v-snackbar v-model="appStore.err.show">
+      {{ appStore.err.msg }}
+      <template v-slot:actions>
+        <v-btn variant="text" @click="appStore.err.show = false" icon="mdi-close"> </v-btn>
+      </template>
+    </v-snackbar>
+
+    <AppFooter :current="appStore.myMediaList[appStore.currentMediaId]" />
   </v-app>
 </template>
 
 <script lang="ts" setup>
 import { getCurrent as wd } from "@tauri-apps/api/window";
 import { useTheme } from "vuetify";
-import { useAppStore } from '../stores/app'
-const appStore = useAppStore()
+import { useAppStore } from "../stores/app";
+const appStore = useAppStore();
 
 const isPC = inject("isPC");
 const isFocused = ref(false);
 const isMaximized = ref(false);
 const isFullscreen = ref(false);
-const isTauri = inject('isTauri');
+const isTauri = inject("isTauri");
 const theme = useTheme();
 
 function toggleTheme() {
@@ -78,15 +90,14 @@ let unlisten: Promise<() => void> | null = null;
 onMounted(() => {
   if (isTauri) {
     unlisten = wd().listen("tauri://resize", () => {
-    wd()
-      .isMaximized()
-      .then((max) => (isMaximized.value = max));
-    wd()
-      .isFullscreen()
-      .then((full) => (isFullscreen.value = full));
-  });
-  }else{
-
+      wd()
+        .isMaximized()
+        .then((max) => (isMaximized.value = max));
+      wd()
+        .isFullscreen()
+        .then((full) => (isFullscreen.value = full));
+    });
+  } else {
   }
 });
 
@@ -99,7 +110,6 @@ onUnmounted(() => {
 function exit() {
   window.close();
 }
-
 </script>
 <style scoped>
 .v-toolbar-title {

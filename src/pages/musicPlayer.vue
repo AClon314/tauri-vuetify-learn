@@ -29,18 +29,19 @@
     >
   </v-col>
 
-  <v-list lines="two">
+  <v-list lines="two" v-model:selected="appStore.selected" select-strategy="single-independent">
     <v-list-item
-      v-for="(item, i) in medias"
-      :key="i"
-      :value="item"
+      v-for="(item, i) in appStore.myMediaList"
+      :value="i"
       :title="item.name"
       :subtitle="item.path"
       :prepend-avatar="item.cover"
       @click="appStore.setCurrentMedia(i)"
       color="primary"
-    ></v-list-item>
+    >
+    </v-list-item>
   </v-list>
+  {{ appStore.selected }}
 </template>
 
 <script lang="ts" setup>
@@ -55,20 +56,18 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import * as tauPath from "@tauri-apps/api/path";
-import { MediaItem } from "../types";
 import { useAppStore } from "../stores/app";
 const appStore = useAppStore();
+const selected = ref([]);
 
 const isTauri = inject("isTauri");
 const isPC = inject("isPC");
-const medias = appStore.myMediaList;
 const dirPath = ref();
-const current = ref();
 refresh();
 
 async function refresh() {
   if (isTauri) {
-    let paths;
+    let paths: MediaItem[] = [];
     if (dirPath.value == undefined) {
       // init dirPath
       dirPath.value = await tauPath.pictureDir();
@@ -76,11 +75,13 @@ async function refresh() {
     } else {
       paths = await ls(dirPath.value);
     }
-    medias.values = paths.filter(
-      (p) =>
-        p.name.endsWith(".mp3") ||
-        p.name.endsWith(".ogg") ||
-        p.name.endsWith(".wmv")
+    appStore.setMyMediaList(
+      paths.filter(
+        (p) =>
+          p.name.endsWith(".mp3") ||
+          p.name.endsWith(".ogg") ||
+          p.name.endsWith(".wmv")
+      )
     );
   } else {
     appStore.setMyMediaList([
@@ -115,9 +116,9 @@ async function bDir2str(base: BaseDirectory): Promise<string> {
   return await eval(`tauPath.${BaseDirectory[base].toLocaleLowerCase()}Dir()`);
 }
 
-async function ls(dir: string, recursive = false) {
+async function ls(dir: string, recursive = false): Promise<MediaItem[]>{
   const entries = await readDir(dir);
-  const paths: {}[] = [];
+  const paths:  MediaItem[] = [];
   for (const entry of entries) {
     const absPath = await tauPath.join(dir, entry.name);
     // const fileInfo = await stat(absPath);
@@ -138,6 +139,7 @@ const changeTextfield = (e: any) => {
 };
 
 import { Command } from "@tauri-apps/plugin-shell";
+import { MediaItem } from "@/types";
 async function cmd(cmd: string) {
   const result = await Command.create("exec-sh", ["-c", cmd]).execute();
   console.log(result);
