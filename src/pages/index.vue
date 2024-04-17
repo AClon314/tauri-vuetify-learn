@@ -17,7 +17,7 @@
 
       <p>{{ ipv4 }}{{ isTauri }}</p>
       <a
-        v-if="isTauri"
+        v-if="isTauri&&isPC"
         @click="cmd('start http://localhost:1420/')"
         href="javascript:;"
         >浏览器</a
@@ -56,6 +56,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import * as tauPath from "@tauri-apps/api/path";
 
 const isTauri = inject("isTauri");
+const isPC = inject("isPC");
 const imgs = ref();
 const pictureDirPath = ref();
 refresh();
@@ -111,7 +112,6 @@ async function ls(dir: string, recursive = false) {
       stat: fileInfo,
     });
   }
-  console.log(paths);
   return paths;
 }
 

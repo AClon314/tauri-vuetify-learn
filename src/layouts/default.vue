@@ -13,7 +13,7 @@
     >
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
-      <v-app-bar-title class="min-content">PicViewer</v-app-bar-title>
+      <v-app-bar-title class="min-content">Viewer</v-app-bar-title>
       <v-spacer class="fill-height" data-tauri-drag-region></v-spacer>
 
       <v-btn icon="mdi-theme-light-dark" @click="toggleTheme"></v-btn>
@@ -49,13 +49,16 @@
       <router-view />
     </v-main>
 
-    <!-- <AppFooter /> -->
+    <AppFooter :current="appStore.myMediaList[appStore.currentMediaId]"/>
   </v-app>
 </template>
 
 <script lang="ts" setup>
 import { getCurrent as wd } from "@tauri-apps/api/window";
 import { useTheme } from "vuetify";
+import { useAppStore } from '../stores/app'
+const appStore = useAppStore()
+
 const isPC = inject("isPC");
 const isFocused = ref(false);
 const isMaximized = ref(false);

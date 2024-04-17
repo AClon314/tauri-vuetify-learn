@@ -1,79 +1,124 @@
 <template>
-  <v-footer height="40" app>
-    <a
-      v-for="item in items"
-      :key="item.title"
-      :href="item.href"
-      :title="item.title"
-      class="d-inline-block mx-2 social-link"
-      rel="noopener noreferrer"
-      target="_blank"
-    >
-      <v-icon
-        :icon="item.icon"
-        :size="item.icon === '$vuetify' ? 24 : 16"
-      />
-    </a>
+  <v-footer height="70px" app elevation="5">
+    <v-slider
+      thumb-label
+      v-model="currentProgress"
+      density="compact"
+      :max="duration"
+      style="position: absolute; margin-bottom: 50px; z-index: 1; width: 95%"
+    ></v-slider>
+    <v-img
+      min-width="64px"
+      :src="current?.cover"
+      draggable="false"
+      :inline="true"
+    ></v-img>
 
-    <div
-      class="text-caption text-disabled"
-      style="position: absolute; right: 16px;"
-    >
-      &copy; 2016-{{ (new Date()).getFullYear() }} <span class="d-none d-sm-inline-block">Vuetify, LLC</span>
-      —
-      <a
-        class="text-decoration-none on-surface"
-        href="https://vuetifyjs.com/about/licensing/"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        MIT License
-      </a>
+    <div>
+      <span style="font-size: large; font-weight: 600">{{ current?.name }}</span
+      ><br />
+      <span class="v-list-item-subtitle">{{ current?.path }}</span>
     </div>
+
+    <v-text-field
+      v-model="currentProgress"
+      density="compact"
+      style="max-width: 80px"
+      type="number"
+      variant="outlined"
+      hide-details
+    ></v-text-field
+    >/{{ duration }}
+
+    <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
+    <v-btn
+      @click="switchPlay"
+      variant="text"
+      :icon="isPlaying ? 'mdi-pause' : 'mdi-play'"
+    ></v-btn>
+    <v-btn @click="next" variant="text" icon="mdi-skip-next"></v-btn>
   </v-footer>
 </template>
 
-<script setup lang="ts">
-  const items = [
-    {
-      title: 'Vuetify Documentation',
-      icon: `$vuetify`,
-      href: 'https://vuetifyjs.com/',
-    },
-    {
-      title: 'Vuetify Support',
-      icon: 'mdi-shield-star-outline',
-      href: 'https://support.vuetifyjs.com/',
-    },
-    {
-      title: 'Vuetify X',
-      icon: `svg:M2.04875 3.00002L9.77052 13.3248L1.99998 21.7192H3.74882L10.5519 14.3697L16.0486 21.7192H22L13.8437 10.8137L21.0765 3.00002H19.3277L13.0624 9.76874L8.0001 3.00002H2.04875ZM4.62054 4.28821H7.35461L19.4278 20.4308H16.6937L4.62054 4.28821Z`,
-      href: 'https://x.com/vuetifyjs',
-    },
-    {
-      title: 'Vuetify GitHub',
-      icon: `mdi-github`,
-      href: 'https://github.com/vuetifyjs/vuetify',
-    },
-    {
-      title: 'Vuetify Discord',
-      icon: `mdi-discord`,
-      href: 'https://community.vuetifyjs.com/',
-    },
-    {
-      title: 'Vuetify Reddit',
-      icon: `mdi-reddit`,
-      href: 'https://reddit.com/r/vuetifyjs',
-    },
-  ]
+<script lang="ts" setup>
+import { MediaItem } from "@/types";
+import { useAppStore } from "@/stores/app";
+const appStore = useAppStore();
+const props = defineProps({
+  current: {
+    type: Object as PropType<MediaItem> | null,
+  },
+});
+
+const currentProgress = ref(0);
+const duration = ref(0);
+var audio: HTMLAudioElement | null = null;
+var isPlaying = false;
+
+function formatTime(time: Ref<number>) {
+  return computed(() => {
+    const minutes = Math.floor(time.value / 60);
+    const seconds = Math.floor(time.value % 60);
+    return `${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  });
+}
+
+onUpdated(() => {
+  pause();
+  currentProgress.value = 0;
+  if (props.current && props.current.url) {
+    audio = new Audio(props.current.url);
+    audio.onloadedmetadata = () => {
+      if (audio) duration.value = audio.duration;
+      play();
+    };
+    audio.onerror = () => {
+      console.error("Failed to load audio");
+    };
+    // audio.onended = () => {
+    //   next();
+    // };
+  }
+});
+
+watch(currentProgress, (newTime) => {
+  if (audio && Math.abs(newTime - audio.currentTime) > 0.2)
+    audio.currentTime = newTime;
+});
+
+async function play() {
+  if (props.current && props.current.url && audio) {
+    audio.currentTime = currentProgress.value;
+    audio.play();
+    audio.ontimeupdate = () => {
+      if (audio) currentProgress.value = audio.currentTime;
+    };
+    isPlaying = true;
+  }
+}
+
+async function pause() {
+  if (props.current && props.current.url && audio) {
+    audio.pause();
+    isPlaying = false;
+  }
+}
+
+async function switchPlay() {
+  if (isPlaying) {
+    pause();
+  } else {
+    play();
+  }
+}
+
+async function next(add: number = 1) {
+  if (props.current && props.current.url && audio) {
+    currentProgress.value = 0;
+    pause();
+    appStore.addCurrentId(add);
+  }
+}
 </script>
-
-<style scoped lang="sass">
-  .social-link :deep(.v-icon)
-    color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity))
-    text-decoration: none
-    transition: .2s ease-in-out
-
-    &:hover
-      color: rgba(25, 118, 210, 1)
-</style>
