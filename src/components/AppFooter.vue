@@ -1,5 +1,5 @@
 <template>
-  <v-footer height="70px" app elevation="5">
+  <v-footer height="70px" app elevation="10">
     <v-slider
       thumb-label
       v-model="curProgress"
@@ -30,9 +30,16 @@
       <v-text-field
         v-model="progressInput"
         :label="Math.floor(curProgress).toString()"
-        @keyup.enter="() => {if (progressInput) curProgress = progressInput}"
-        @focus="progressInput=Math.floor(curProgress); $nextTick(()=>$event.target.select()) "
-        @blur="progressInput=null"
+        @keyup.enter="
+          () => {
+            if (progressInput) curProgress = progressInput;
+          }
+        "
+        @focus="
+          progressInput = Math.floor(curProgress);
+          $nextTick(() => $event.target.select());
+        "
+        @blur="progressInput = null"
         density="compact"
         style="max-width: 5ch"
         variant="underlined"
@@ -43,12 +50,27 @@
 
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
-      @click="switchPlay"
-      v-touch:hold="switchPlay"
-      variant="text"
-      :icon="isPlaying ? 'mdi-pause' : 'mdi-play'"
+      @mousedown="startPress(state.isLoop)"
+      @mouseup="stopPress(switchPlay)"
+      :active="state.isLoop.value"
+      :variant="state.isLoop.value ? 'outlined' : 'text'"
+      :color="state.isLoop.value ? 'primary' : ''"
+      :icon="isPlaying ? (state.isLoop.value?'mdi-motion-pause-outline':'mdi-pause') : 'mdi-play'"
     ></v-btn>
-    <v-btn @click="next()" variant="text" icon="mdi-skip-next"></v-btn>
+    <v-btn
+      @mousedown="startPress(state.isRandom)"
+      @mouseup="
+        stopPress(() =>
+          state.isRandom.value
+            ? next(Math.round(Math.random() * appStore.myMediaList.length))
+            : next()
+        )
+      "
+      :active="state.isRandom.value"
+      :variant="state.isRandom.value ? 'outlined' : 'text'"
+      :color="state.isRandom.value ? 'primary' : ''"
+      :icon="state.isRandom.value ? 'mdi-shuffle' : 'mdi-skip-next'"
+    ></v-btn>
   </v-footer>
 </template>
 
@@ -64,9 +86,30 @@ const props = defineProps({
 
 const duration = ref(0);
 const curProgress = ref(0);
-const progressInput:Ref<number|null> = ref(null);
+const progressInput: Ref<number | null> = ref(null);
 let audio: HTMLAudioElement | null = null;
 let isPlaying = false;
+const state = {
+  isRandom: ref(false),
+  isLoop: ref(false),
+};
+
+let pressTimer: any = null;
+let pressLock = false;
+function startPress(ref: Ref<boolean>) {
+  pressLock = true;
+  pressTimer = setTimeout(() => {
+    ref.value = !ref.value;
+    pressLock = false;
+  }, 1500);
+}
+function stopPress(func: () => void) {
+  clearTimeout(pressTimer);
+  if (pressLock) {
+    func();
+    pressLock = false;
+  }
+}
 
 function formatTime(time: Ref<number>) {
   return computed(() => {
@@ -83,7 +126,7 @@ onUpdated(() => {
   curProgress.value = 0;
   refresh();
   if (audio) play();
-  console.log("update");
+  // console.log("update");
 });
 
 onUnmounted(() => {
@@ -96,7 +139,7 @@ watch(curProgress, (accTime) => {
     audio.currentTime = accTime;
 });
 
-async function refresh() {
+function refresh() {
   audio?.pause();
   if (props.current && props.current.url) {
     audio = new Audio(props.current.url);
@@ -107,17 +150,20 @@ async function refresh() {
       console.error("Failed to load audio");
     };
     audio.onended = () => {
-      next();
+      if (state.isLoop.value) {
+        curProgress.value = 0; play();
+      } else {
+        next();
+      }
     };
   } else {
-    appStore.err.msg = `skipping ${props.current?.name}`;
+    appStore.err.msg = `Unplayable ${props.current?.name}`;
     appStore.err.show = true;
     console.error("Current media", props.current);
-    next();
   }
 }
 
-async function play() {
+function play() {
   if (props.current && props.current.url && audio) {
     audio.play().catch((e) => {
       console.error("Failed to play audio", e);
@@ -129,7 +175,7 @@ async function play() {
   }
 }
 
-async function pause(goto: number | null = null) {
+function pause(goto: number | null = null) {
   if (props.current && props.current.url && audio) {
     audio.pause();
     isPlaying = false;
@@ -137,7 +183,7 @@ async function pause(goto: number | null = null) {
   }
 }
 
-async function switchPlay() {
+function switchPlay() {
   if (isPlaying) {
     pause();
   } else {
@@ -145,10 +191,11 @@ async function switchPlay() {
   }
 }
 
-async function next(add: number = 1) {
+function next(add: number = 1) {
   pause(0);
   appStore.addCurrentId(add);
   appStore.setSelected([appStore.currentMediaId]);
+  // console.log(`+${add}=${appStore.currentMediaId}`);
 }
 </script>
 @/plugins/refDebounced
