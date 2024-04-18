@@ -16,12 +16,14 @@
       <v-btn @click="pageReload();">刷新</v-btn>
 
       <p>{{ ipv4 }}{{ isTauri }}</p>
+
       <a
         v-if="isTauri&&isPC"
         @click="cmd('start http://localhost:1420/')"
         href="javascript:;"
         >浏览器</a
       >
+      <a href="/musicPlayer">音乐播放</a>
     </v-col>
   </div>
   <div style="display: flex; flex-wrap: wrap">

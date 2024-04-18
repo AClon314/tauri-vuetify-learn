@@ -19,7 +19,7 @@
     <div>
       <span style="font-size: large; font-weight: 600">{{ current?.name }}</span
       ><br />
-      <span class="v-list-item-subtitle">{{ current?.path }}</span>
+      <span class="v-list-item-subtitle">{{ current?.alias }}</span>
     </div>
 
     <v-spacer></v-spacer>

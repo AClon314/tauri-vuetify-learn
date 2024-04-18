@@ -1,6 +1,7 @@
 export interface MediaItem {
   name: string;
-  path: string;
+  alias?: string;
+  path?: string;
   url: string;
   cover?: string;
 }

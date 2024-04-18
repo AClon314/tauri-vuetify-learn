@@ -29,36 +29,36 @@
     >
   </v-col>
 
-  <v-list lines="two" v-model:selected="appStore.selected" select-strategy="single-independent">
+  <v-list
+    lines="two"
+    v-model:selected="appStore.selected"
+    select-strategy="single-independent"
+  >
     <v-list-item
       v-for="(item, i) in appStore.myMediaList"
+      :key="item.path"
       :value="i"
       :title="item.name"
-      :subtitle="item.path"
+      :subtitle="item.alias"
       :prepend-avatar="item.cover"
       @click="appStore.setCurrentMedia(i)"
       color="primary"
     >
     </v-list-item>
   </v-list>
-  {{ appStore.selected }}
 </template>
 
 <script lang="ts" setup>
-import { inject, ref } from "vue";
-import {
-  exists,
-  readFile,
-  readDir,
-  BaseDirectory,
-  stat,
-  FileInfo,
-} from "@tauri-apps/plugin-fs";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import * as tauPath from "@tauri-apps/api/path";
+import * as tauFs from "@tauri-apps/plugin-fs";
+
+import { inject, ref } from "vue";
 import { useAppStore } from "../stores/app";
+import * as mm from "music-metadata";
+import { Buffer } from 'buffer';
+globalThis.Buffer = Buffer
 const appStore = useAppStore();
-const selected = ref([]);
 
 const isTauri = inject("isTauri");
 const isPC = inject("isPC");
@@ -70,38 +70,64 @@ async function refresh() {
     let paths: MediaItem[] = [];
     if (dirPath.value == undefined) {
       // init dirPath
-      dirPath.value = await tauPath.pictureDir();
-      paths = await ls(`${await bDir2str(BaseDirectory.Picture)}`);
+      dirPath.value = await tauPath.audioDir();
+      paths = await ls(`${await bDir2str(tauFs.BaseDirectory.Audio)}`);
     } else {
       paths = await ls(dirPath.value);
     }
-    appStore.setMyMediaList(
-      paths.filter(
-        (p) =>
-          p.name.endsWith(".mp3") ||
-          p.name.endsWith(".ogg") ||
-          p.name.endsWith(".wmv")
-      )
+    paths = paths.filter(
+      (p) =>
+        p.name.endsWith(".mp3") ||
+        p.name.endsWith(".ogg") ||
+        p.name.endsWith(".wmv")
     );
+    Promise.all(
+      paths.map(async (p) => {
+        const response = await fetch(p.url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        } else {
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const metadata = await mm.parseBuffer(buffer, "audio/mpeg", {
+            duration: true,
+          });
+          const cover = mm.selectCover(metadata.common.picture);
+          if (cover) {
+            p.cover = `data:${cover.format};base64,${cover.data.toString(
+              "base64"
+            )}`;
+          }
+          p.alias = metadata.common.artist;
+        }
+        return p;
+      })
+    )
+      .then((updatedPaths) => {
+        appStore.setMyMediaList(updatedPaths);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   } else {
     appStore.setMyMediaList([
       {
         name: "半斤八两",
-        path: "许冠杰",
+        alias: "许冠杰",
         url: "http://music.163.com/song/media/outer/url?id=172386.mp3",
         cover:
           "https://p1.music.126.net/Wg-nrULm75dl0K3EkyQFLQ==/109951166280515519.jpg?param=130y130",
       },
       {
         name: "Klamauk",
-        path: "阿保剛",
+        alias: "阿保剛",
         url: "http://music.163.com/song/media/outer/url?id=4993314.mp3",
         cover:
           "https://p2.music.126.net/AsPH-WlzIw7lkvwT-3lSHA==/5978044720410513.jpg?param=130y130",
       },
       {
         name: "非tauri环境",
-        path: "仅供测试",
+        alias: "仅供测试",
         url: "",
       },
     ]);
@@ -112,13 +138,15 @@ function pageReload() {
   location.reload();
 }
 
-async function bDir2str(base: BaseDirectory): Promise<string> {
-  return await eval(`tauPath.${BaseDirectory[base].toLocaleLowerCase()}Dir()`);
+async function bDir2str(base: tauFs.BaseDirectory): Promise<string> {
+  return await eval(
+    `tauPath.${tauFs.BaseDirectory[base].toLocaleLowerCase()}Dir()`
+  );
 }
 
-async function ls(dir: string, recursive = false): Promise<MediaItem[]>{
-  const entries = await readDir(dir);
-  const paths:  MediaItem[] = [];
+async function ls(dir: string, recursive = false): Promise<MediaItem[]> {
+  const entries = await tauFs.readDir(dir);
+  const paths: MediaItem[] = [];
   for (const entry of entries) {
     const absPath = await tauPath.join(dir, entry.name);
     // const fileInfo = await stat(absPath);
