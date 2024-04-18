@@ -9,6 +9,7 @@
       style="position: fixed; top: -15px; width: calc(100% - 45px)"
     ></v-slider>
     <v-img
+      v-if="current?.cover"
       min-width="64px"
       draggable="false"
       style="z-index: -1"
@@ -16,23 +17,25 @@
       :inline="true"
     ></v-img>
 
-    <div>
-      <span style="font-size: large; font-weight: 600">{{ current?.name }}</span
+    <div style="z-index: 1; max-height: 2em; margin-bottom: 1em;">
+      <span style="font-weight: 600">{{ current?.name }}</span
       ><br />
-      <span class="v-list-item-subtitle">{{ current?.alias }}</span>
+      <span class="v-list-item-subtitle" style="font-size: small; ">{{ current?.alias }}</span>
     </div>
 
     <v-spacer></v-spacer>
 
-    <v-text-field
-      v-model="currentProgress"
-      density="compact"
-      style="max-width: 80px; margin-bottom: 8px"
-      type="number"
-      variant="underlined"
-      hide-details
-    ></v-text-field
-    >/{{ duration.toFixed(0) }}
+    <div style="line-height: 0.5; text-align: center; margin-bottom: 10px;">
+      <v-text-field
+        v-model="currentProgress"
+        density="compact"
+        style="max-width: 80px"
+        type="number"
+        variant="underlined"
+        hide-details
+      ></v-text-field
+      ><br /><span>{{ duration.toFixed(0) }}</span>
+    </div>
 
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
@@ -47,7 +50,6 @@
 <script lang="ts" setup>
 import { MediaItem } from "@/types";
 import { useAppStore } from "@/stores/app";
-import { app } from "@tauri-apps/api";
 const appStore = useAppStore();
 const props = defineProps({
   current: {

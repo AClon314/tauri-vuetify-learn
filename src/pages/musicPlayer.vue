@@ -9,14 +9,7 @@
       @click:append="refresh()"
       @keydown.enter="refresh()"
     ></v-text-field>
-    <v-btn
-      @click="
-        changeTextfield(
-          '/storage/emulated/0/Android/data/com.tauri.tauri_app/files/Musics'
-        )
-      "
-      >默认</v-btn
-    >
+    <v-btn @click="changeTextfield(defaultPath)">默认</v-btn>
     <v-btn @click="changeTextfield('/storage/emulated/0/Android')">安卓</v-btn>
     <v-btn @click="changeTextfield('/storage/emulated/0/Musics')">Musics</v-btn>
     <v-btn @click="pageReload()">刷新</v-btn>
@@ -56,13 +49,14 @@ import * as tauFs from "@tauri-apps/plugin-fs";
 import { inject, ref } from "vue";
 import { useAppStore } from "../stores/app";
 import * as mm from "music-metadata";
-import { Buffer } from 'buffer';
-globalThis.Buffer = Buffer
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
 const appStore = useAppStore();
 
 const isTauri = inject("isTauri");
 const isPC = inject("isPC");
 const dirPath = ref();
+var defaultPath: string | undefined = undefined;
 refresh();
 
 async function refresh() {
@@ -70,16 +64,13 @@ async function refresh() {
     let paths: MediaItem[] = [];
     if (dirPath.value == undefined) {
       // init dirPath
-      dirPath.value = await tauPath.audioDir();
+      defaultPath = await tauPath.audioDir();
       paths = await ls(`${await bDir2str(tauFs.BaseDirectory.Audio)}`);
     } else {
       paths = await ls(dirPath.value);
     }
     paths = paths.filter(
-      (p) =>
-        p.name.endsWith(".mp3") ||
-        p.name.endsWith(".ogg") ||
-        p.name.endsWith(".wmv")
+      (p) => p.name.endsWith(".mp3") || p.name.endsWith(".ogg")
     );
     Promise.all(
       paths.map(async (p) => {
@@ -98,7 +89,13 @@ async function refresh() {
               "base64"
             )}`;
           }
-          p.alias = metadata.common.artist;
+          if (metadata.common.artist) {
+            p.name = metadata.common.title || p.name;
+            p.alias = metadata.common.artist;
+            if (metadata.common.album) {
+              p.alias += ` - ${metadata.common.album}`;
+            }
+          }
         }
         return p;
       })
