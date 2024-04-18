@@ -2,7 +2,7 @@
   <v-footer height="70px" app elevation="5">
     <v-slider
       thumb-label
-      v-model="currentProgress"
+      v-model="curProgress"
       color="primary"
       track-color="primary"
       :max="duration"
@@ -17,29 +17,34 @@
       :inline="true"
     ></v-img>
 
-    <div style="z-index: 1; max-height: 2em; margin-bottom: 1em;">
+    <div style="z-index: 1; max-height: 2em; margin-bottom: 1em">
       <span style="font-weight: 600">{{ current?.name }}</span
       ><br />
-      <span class="v-list-item-subtitle" style="font-size: small; ">{{ current?.alias }}</span>
+      <span class="v-list-item-subtitle" style="font-size: small">{{
+        current?.alias
+      }}</span>
     </div>
-
     <v-spacer></v-spacer>
 
-    <div style="line-height: 0.5; text-align: center; margin-bottom: 10px;">
+    <div style="line-height: 0.5; margin-bottom: 10px">
       <v-text-field
-        v-model="currentProgress"
+        v-model="progressInput"
+        :label="Math.floor(curProgress).toString()"
+        @keyup.enter="() => {if (progressInput) curProgress = progressInput}"
+        @focus="progressInput=Math.floor(curProgress); $nextTick(()=>$event.target.select()) "
+        @blur="progressInput=null"
         density="compact"
-        style="max-width: 80px"
-        type="number"
+        style="max-width: 5ch"
         variant="underlined"
         hide-details
-      ></v-text-field
-      ><br /><span>{{ duration.toFixed(0) }}</span>
+      ></v-text-field>
+      <br /><span>{{ duration.toFixed(1) }}</span>
     </div>
 
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
       @click="switchPlay"
+      v-touch:hold="switchPlay"
       variant="text"
       :icon="isPlaying ? 'mdi-pause' : 'mdi-play'"
     ></v-btn>
@@ -57,10 +62,11 @@ const props = defineProps({
   },
 });
 
-const currentProgress = ref(0);
 const duration = ref(0);
-var audio: HTMLAudioElement | null = null;
-var isPlaying = false;
+const curProgress = ref(0);
+const progressInput:Ref<number|null> = ref(null);
+let audio: HTMLAudioElement | null = null;
+let isPlaying = false;
 
 function formatTime(time: Ref<number>) {
   return computed(() => {
@@ -74,9 +80,10 @@ function formatTime(time: Ref<number>) {
 
 onUpdated(() => {
   pause(0);
-  currentProgress.value = 0;
+  curProgress.value = 0;
   refresh();
   if (audio) play();
+  console.log("update");
 });
 
 onUnmounted(() => {
@@ -84,9 +91,9 @@ onUnmounted(() => {
   audio = null;
 });
 
-watch(currentProgress, (newTime) => {
-  if (audio && Math.abs(newTime - audio.currentTime) > 0.5)
-    audio.currentTime = newTime;
+watch(curProgress, (accTime) => {
+  if (audio && Math.abs(accTime - audio.currentTime) > 0.1)
+    audio.currentTime = accTime;
 });
 
 async function refresh() {
@@ -116,7 +123,7 @@ async function play() {
       console.error("Failed to play audio", e);
     });
     audio.ontimeupdate = () => {
-      if (audio) currentProgress.value = audio.currentTime;
+      if (audio) curProgress.value = audio.currentTime;
     };
     isPlaying = true;
   }
@@ -126,7 +133,7 @@ async function pause(goto: number | null = null) {
   if (props.current && props.current.url && audio) {
     audio.pause();
     isPlaying = false;
-    if (goto !== null) currentProgress.value = goto;
+    if (goto !== null) curProgress.value = goto;
   }
 }
 
@@ -144,3 +151,4 @@ async function next(add: number = 1) {
   appStore.setSelected([appStore.currentMediaId]);
 }
 </script>
+@/plugins/refDebounced

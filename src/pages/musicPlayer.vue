@@ -56,7 +56,7 @@ const appStore = useAppStore();
 const isTauri = inject("isTauri");
 const isPC = inject("isPC");
 const dirPath = ref();
-var defaultPath: string | undefined = undefined;
+let defaultPath: string | undefined = undefined;
 refresh();
 
 async function refresh() {
@@ -126,6 +126,13 @@ async function refresh() {
         name: "非tauri环境",
         alias: "仅供测试",
         url: "",
+      },
+      {
+        name: "Halo",
+        alias: "Distayne",
+        url: "http://music.163.com/song/media/outer/url?id=1959991834.mp3",
+        cover:
+          "http://p2.music.126.net/XbKZLxQNYCHVfzLdTX3o3A==/109951167602369619.jpg?param=130y130",
       },
     ]);
   }
