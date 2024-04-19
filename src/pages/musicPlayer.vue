@@ -24,17 +24,17 @@
 
   <v-list
     lines="two"
-    v-model:selected="appStore.selected"
+    v-model:selected="appS.selected"
     select-strategy="single-independent"
   >
     <v-list-item
-      v-for="(item, i) in appStore.myMediaList"
+      v-for="(item, i) in appS.myMediaList"
       :key="item.path"
       :value="i"
       :title="item.name"
       :subtitle="item.alias"
       :prepend-avatar="item.cover"
-      @click="appStore.setCurrentMedia(i)"
+      @click="appS.currentMediaId=i"
       color="primary"
     >
     </v-list-item>
@@ -47,11 +47,11 @@ import * as tauPath from "@tauri-apps/api/path";
 import * as tauFs from "@tauri-apps/plugin-fs";
 
 import { inject, ref } from "vue";
-import { useAppStore } from "../stores/app";
+import { useAppStore } from "@/stores/app";
 import * as mm from "music-metadata";
 import { Buffer } from "buffer";
 globalThis.Buffer = Buffer;
-const appStore = useAppStore();
+const appS = useAppStore();
 
 const isTauri = inject("isTauri");
 const isPC = inject("isPC");
@@ -101,13 +101,13 @@ async function refresh() {
       })
     )
       .then((updatedPaths) => {
-        appStore.setMyMediaList(updatedPaths);
+        appS.$patch({ myMediaList: updatedPaths });
       })
       .catch((e) => {
         console.error(e);
       });
   } else {
-    appStore.setMyMediaList([
+    appS.myMediaList = [
       {
         name: "半斤八两",
         alias: "许冠杰",
@@ -134,7 +134,7 @@ async function refresh() {
         cover:
           "http://p2.music.126.net/XbKZLxQNYCHVfzLdTX3o3A==/109951167602369619.jpg?param=130y130",
       },
-    ]);
+    ];
   }
 }
 

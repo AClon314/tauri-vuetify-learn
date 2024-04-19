@@ -108,6 +108,7 @@ function stopPress(func: () => void) {
 }
 onMounted(() => {
   refresh();
+  appS.pinia2tau();
 });
 
 onUnmounted(() => {
@@ -122,6 +123,7 @@ watch(appR.curTime, (accTime) => {
 
 watch(current, (current) => {
   pause();
+  appS.curTime = 0;
   refresh();
   if (audio) play();
 });
@@ -183,7 +185,7 @@ function next(add: number = 1) {
   pause();
   appS.curTime = 0;
   appS.addCurrentId(add);
-  appS.setSelected([appS.currentMediaId]);
+  appS.selected=[appS.currentMediaId];
   // console.log(`+${add}=${appStore.currentMediaId}`);
 }
 

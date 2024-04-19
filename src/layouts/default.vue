@@ -68,7 +68,7 @@
 <script lang="ts" setup>
 import { getCurrent as wd } from "@tauri-apps/api/window";
 import { useTheme } from "vuetify";
-import { useAppStore } from "../stores/app";
+import { useAppStore } from "@/stores/app";
 const appStore = useAppStore();
 
 const isPC = inject("isPC");
