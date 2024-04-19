@@ -57,10 +57,14 @@
     <v-snackbar v-model="appStore.err.show">
       {{ appStore.err.msg }}
       <template v-slot:actions>
-        <v-btn variant="text" @click="appStore.err.show = false" icon="mdi-close"> </v-btn>
+        <v-btn
+          variant="text"
+          @click="appStore.err.show = false"
+          icon="mdi-close"
+        >
+        </v-btn>
       </template>
     </v-snackbar>
-
     <AppFooter />
   </v-app>
 </template>

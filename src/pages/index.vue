@@ -10,15 +10,26 @@
         @click:append="refresh()"
         @keydown.enter="refresh()"
       ></v-text-field>
-      <v-btn @click="changeTextfield('/storage/emulated/0/Android/data/com.tauri.tauri_app/files/Pictures');">默认</v-btn>
-      <v-btn @click="changeTextfield('/storage/emulated/0/Android');">安卓</v-btn>
-      <v-btn @click="changeTextfield('/storage/emulated/0/DCIM/Screenshots');">DCIM</v-btn>
-      <v-btn @click="pageReload();">刷新</v-btn>
+      <v-btn
+        @click="
+          changeTextfield(
+            '/storage/emulated/0/Android/data/com.tauri.tauri_app/files/Pictures'
+          )
+        "
+        >默认</v-btn
+      >
+      <v-btn @click="changeTextfield('/storage/emulated/0/Android')"
+        >安卓</v-btn
+      >
+      <v-btn @click="changeTextfield('/storage/emulated/0/DCIM/Screenshots')"
+        >DCIM</v-btn
+      >
+      <v-btn @click="pageReload()">刷新</v-btn>
 
       <p>{{ ipv4 }}{{ isTauri }}</p>
 
       <a
-        v-if="isTauri&&isPC"
+        v-if="isTauri && isPC"
         @click="cmd('start http://localhost:1420/')"
         href="javascript:;"
         >浏览器</a
@@ -70,7 +81,7 @@ async function refresh() {
       // init pictureDirPath
       pictureDirPath.value = await tauPath.pictureDir();
       paths = await ls(`${await bDir2str(BaseDirectory.Picture)}`);
-    }else{
+    } else {
       paths = await ls(pictureDirPath.value);
     }
     imgs.value = paths.filter(

@@ -34,7 +34,7 @@
       :title="item.name"
       :subtitle="item.alias"
       :prepend-avatar="item.cover"
-      @click="appS.currentMediaId=i"
+      @click="appS.currentMediaId = i"
       color="primary"
     >
     </v-list-item>
@@ -99,13 +99,9 @@ async function refresh() {
         }
         return p;
       })
-    )
-      .then((updatedPaths) => {
-        appS.$patch({ myMediaList: updatedPaths });
-      })
-      .catch((e) => {
-        console.error(e);
-      });
+    ).then((updatedPaths) => {
+      appS.$patch({ myMediaList: updatedPaths });
+    });
   } else {
     appS.myMediaList = [
       {

@@ -9,19 +9,19 @@
       style="position: fixed; top: -15px; width: calc(100% - 45px)"
     ></v-slider>
     <v-img
-      v-if="current().cover"
+      v-if="current()?.cover"
       min-width="64px"
       draggable="false"
       style="z-index: -1"
-      :src="current().cover"
+      :src="current()?.cover"
       :inline="true"
     ></v-img>
 
     <div style="z-index: 1; max-height: 2em; margin-bottom: 1em">
-      <span style="font-weight: 600">{{ current().name }}</span
+      <span style="font-weight: 600">{{ current()?.name }}</span
       ><br />
       <span class="v-list-item-subtitle" style="font-size: small">{{
-        current().alias
+        current()?.alias
       }}</span>
     </div>
 
@@ -52,7 +52,7 @@
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
       @mousedown="startPress(appR.isLoop)"
-      @mouseup="stopPress(switchPlay)"
+      @mouseup="stopPress(() => (isPlaying ? pause() : play()))"
       :active="appS.isLoop"
       :variant="appS.isLoop ? 'outlined' : 'text'"
       :color="appS.isLoop ? 'primary' : ''"
@@ -84,11 +84,13 @@ const appS = useAppStore();
 const appR = storeToRefs(appS);
 
 // 小心appS.currentMediaId<0时，数组会越界访问
-const current = () => appS.myMediaList[appS.currentMediaId];
+const current = () => {
+  if (appS.myMediaList) return appS.myMediaList[appS.currentMediaId];
+};
 const duration = ref(0);
 const progressInput: Ref<number | null> = ref(null);
 let audio: HTMLAudioElement | null = null;
-let isPlaying = false;
+let isPlaying = ref(false);
 
 let pressTimer: any = null;
 let pressLock = false;
@@ -108,7 +110,6 @@ function stopPress(func: () => void) {
 }
 onMounted(() => {
   refresh();
-  appS.pinia2tau();
 });
 
 onUnmounted(() => {
@@ -116,28 +117,18 @@ onUnmounted(() => {
   audio = null;
 });
 
-watch(appR.curTime, (accTime) => {
-  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
-    audio.currentTime = accTime;
-});
-
-watch(current, (current) => {
-  pause();
-  appS.curTime = 0;
-  refresh();
-  if (audio) play();
-});
-
 function refresh() {
-  // console.log(appS.currentMediaId);
-  if (current().url) {
-    audio = new Audio(current().url);
+  if (current()?.url) {
+    audio = new Audio(current()?.url);
     audio.currentTime = appS.curTime;
     audio.onloadedmetadata = () => {
       if (audio) duration.value = audio.duration;
     };
     audio.onerror = () => {
       console.error("Failed to load audio");
+    };
+    audio.ontimeupdate = () => {
+      appS.curTime = audio?.currentTime || 0;
     };
     audio.onended = () => {
       if (appS.isLoop) {
@@ -150,46 +141,47 @@ function refresh() {
     };
   } else {
     audio = null;
-    appS.err.msg = `Unplayable ${current().name}`;
+    appS.err.msg = `Unplayable ${current()?.name}`;
     appS.err.show = true;
     console.error("Current media", current);
   }
 }
 
 function play() {
-  if (audio) {
-    audio.play().catch((e) => {
-      console.error("Failed to play audio", e);
-    });
-    audio.ontimeupdate = () => {
-      if (audio) appS.curTime = audio.currentTime;
-    };
-    isPlaying = true;
-  }
+  audio?.play().catch((e) => {
+    console.error("Failed to play audio", e);
+  });
+  isPlaying.value = true;
 }
 
 function pause() {
   audio?.pause();
-  isPlaying = false;
-}
-
-function switchPlay() {
-  if (isPlaying) {
-    pause();
-  } else {
-    play();
-  }
+  isPlaying.value = false;
 }
 
 function next(add: number = 1) {
   pause();
   appS.curTime = 0;
   appS.addCurrentId(add);
-  appS.selected=[appS.currentMediaId];
+  appS.selected = [appS.currentMediaId];
   // console.log(`+${add}=${appStore.currentMediaId}`);
 }
 
 function nextRandom() {
   next(Math.ceil(Math.random() * (appS.myMediaList.length - 1)));
 }
+
+watch(appR.curTime, (accTime) => {
+  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
+    audio.currentTime = accTime;
+});
+
+// const stopWatchCur = await appS.watchCurTime.stop();
+// const stopWatchS = await appS.watchS.stop();
+watch(appR.currentMediaId, (current) => {
+  pause();
+  appS.curTime = 0;
+  refresh();
+  play();
+});
 </script>

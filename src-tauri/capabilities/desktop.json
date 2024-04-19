@@ -36,6 +36,10 @@
     "window:allow-is-focused",
     "webview:allow-internal-toggle-devtools",
     "webview:default",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-save",
+    "store:allow-load",
     {
       "identifier": "fs:scope",
       "allow": [
