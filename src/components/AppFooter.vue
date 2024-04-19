@@ -2,41 +2,42 @@
   <v-footer height="70px" app elevation="10">
     <v-slider
       thumb-label
-      v-model="curProgress"
+      v-model="appS.curTime"
       color="primary"
       track-color="primary"
       :max="duration"
       style="position: fixed; top: -15px; width: calc(100% - 45px)"
     ></v-slider>
     <v-img
-      v-if="current?.cover"
+      v-if="current().cover"
       min-width="64px"
       draggable="false"
       style="z-index: -1"
-      :src="current?.cover"
+      :src="current().cover"
       :inline="true"
     ></v-img>
 
     <div style="z-index: 1; max-height: 2em; margin-bottom: 1em">
-      <span style="font-weight: 600">{{ current?.name }}</span
+      <span style="font-weight: 600">{{ current().name }}</span
       ><br />
       <span class="v-list-item-subtitle" style="font-size: small">{{
-        current?.alias
+        current().alias
       }}</span>
     </div>
+
     <v-spacer></v-spacer>
 
     <div style="line-height: 0.5; margin-bottom: 10px">
       <v-text-field
         v-model="progressInput"
-        :label="Math.floor(curProgress).toString()"
+        :label="Math.floor(appS.curTime).toString()"
         @keyup.enter="
           () => {
-            if (progressInput) curProgress = progressInput;
+            if (progressInput) appS.curTime = progressInput;
           }
         "
         @focus="
-          progressInput = Math.floor(curProgress);
+          progressInput = Math.floor(appS.curTime);
           $nextTick(() => $event.target.select());
         "
         @blur="progressInput = null"
@@ -50,49 +51,49 @@
 
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
-      @mousedown="startPress(state.isLoop)"
+      @mousedown="startPress(appR.isLoop)"
       @mouseup="stopPress(switchPlay)"
-      :active="state.isLoop.value"
-      :variant="state.isLoop.value ? 'outlined' : 'text'"
-      :color="state.isLoop.value ? 'primary' : ''"
-      :icon="isPlaying ? (state.isLoop.value?'mdi-motion-pause-outline':'mdi-pause') : 'mdi-play'"
+      :active="appS.isLoop"
+      :variant="appS.isLoop ? 'outlined' : 'text'"
+      :color="appS.isLoop ? 'primary' : ''"
+      :icon="
+        isPlaying
+          ? appS.isLoop
+            ? 'mdi-motion-pause-outline'
+            : 'mdi-pause'
+          : 'mdi-play'
+      "
     ></v-btn>
     <v-btn
-      @mousedown="startPress(state.isRandom)"
+      @mousedown="startPress(appR.isRandom)"
       @mouseup="
         stopPress(() =>
-          state.isRandom.value
-            ? next(Math.round(Math.random() * appStore.myMediaList.length))
+          appS.isRandom
+            ? next(Math.round(Math.random() * appS.myMediaList.length))
             : next()
         )
       "
-      :active="state.isRandom.value"
-      :variant="state.isRandom.value ? 'outlined' : 'text'"
-      :color="state.isRandom.value ? 'primary' : ''"
-      :icon="state.isRandom.value ? 'mdi-shuffle' : 'mdi-skip-next'"
+      :active="appS.isRandom"
+      :variant="appS.isRandom ? 'outlined' : 'text'"
+      :color="appS.isRandom ? 'primary' : ''"
+      :icon="appS.isRandom ? 'mdi-shuffle' : 'mdi-skip-next'"
     ></v-btn>
   </v-footer>
 </template>
 
 <script lang="ts" setup>
-import { MediaItem } from "@/types";
+const DELTA_CUR_TIME = 0.1;
+const LONG_PRESS_TIME = 700;
 import { useAppStore } from "@/stores/app";
-const appStore = useAppStore();
-const props = defineProps({
-  current: {
-    type: Object as PropType<MediaItem> | null,
-  },
-});
+import { storeToRefs } from "pinia";
+const appS = useAppStore();
+const appR = storeToRefs(appS);
 
+const current = () => appS.myMediaList[appS.currentMediaId];
 const duration = ref(0);
-const curProgress = ref(0);
 const progressInput: Ref<number | null> = ref(null);
 let audio: HTMLAudioElement | null = null;
 let isPlaying = false;
-const state = {
-  isRandom: ref(false),
-  isLoop: ref(false),
-};
 
 let pressTimer: any = null;
 let pressLock = false;
@@ -101,7 +102,7 @@ function startPress(ref: Ref<boolean>) {
   pressTimer = setTimeout(() => {
     ref.value = !ref.value;
     pressLock = false;
-  }, 1500);
+  }, LONG_PRESS_TIME);
 }
 function stopPress(func: () => void) {
   clearTimeout(pressTimer);
@@ -110,39 +111,32 @@ function stopPress(func: () => void) {
     pressLock = false;
   }
 }
-
-function formatTime(time: Ref<number>) {
-  return computed(() => {
-    const minutes = Math.floor(time.value / 60);
-    const seconds = Math.floor(time.value % 60);
-    return `${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  });
-}
-
-onUpdated(() => {
-  pause(0);
-  curProgress.value = 0;
+onMounted(()=>{
   refresh();
-  if (audio) play();
-  // console.log("update");
-});
+})
 
 onUnmounted(() => {
   pause();
   audio = null;
 });
 
-watch(curProgress, (accTime) => {
-  if (audio && Math.abs(accTime - audio.currentTime) > 0.1)
+watch(appR.curTime, (accTime) => {
+  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
     audio.currentTime = accTime;
+});
+
+watch(current, (current) => {
+  pause(0);
+  appS.curTime = 0;
+  refresh();
+  if (audio) play();
 });
 
 function refresh() {
   audio?.pause();
-  if (props.current && props.current.url) {
-    audio = new Audio(props.current.url);
+  if (current().url) {
+    audio = new Audio(current().url);
+    console.log("audio", audio);
     audio.onloadedmetadata = () => {
       if (audio) duration.value = audio.duration;
     };
@@ -150,36 +144,39 @@ function refresh() {
       console.error("Failed to load audio");
     };
     audio.onended = () => {
-      if (state.isLoop.value) {
-        curProgress.value = 0; play();
+      if (appS.isLoop) {
+        appS.curTime = 0;
+        play();
       } else {
         next();
       }
     };
   } else {
-    appStore.err.msg = `Unplayable ${props.current?.name}`;
-    appStore.err.show = true;
-    console.error("Current media", props.current);
+    pause();
+    audio = null;
+    appS.err.msg = `Unplayable ${current().name}`;
+    appS.err.show = true;
+    console.error("Current media", current);
   }
 }
 
 function play() {
-  if (props.current && props.current.url && audio) {
+  if (audio) {
     audio.play().catch((e) => {
       console.error("Failed to play audio", e);
     });
     audio.ontimeupdate = () => {
-      if (audio) curProgress.value = audio.currentTime;
+      if (audio) appS.curTime = audio.currentTime;
     };
     isPlaying = true;
   }
 }
 
 function pause(goto: number | null = null) {
-  if (props.current && props.current.url && audio) {
+  if (current().url && audio) {
     audio.pause();
     isPlaying = false;
-    if (goto !== null) curProgress.value = goto;
+    if (goto !== null) appS.curTime = goto;
   }
 }
 
@@ -193,8 +190,8 @@ function switchPlay() {
 
 function next(add: number = 1) {
   pause(0);
-  appStore.addCurrentId(add);
-  appStore.setSelected([appStore.currentMediaId]);
+  appS.addCurrentId(add);
+  appS.setSelected([appS.currentMediaId]);
   // console.log(`+${add}=${appStore.currentMediaId}`);
 }
 </script>

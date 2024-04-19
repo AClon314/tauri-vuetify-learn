@@ -7,10 +7,13 @@ export const useAppStore = defineStore("app", {
     myMediaList: [] as MediaItem[],
     currentMediaId: -1,
     selected: [] as number[],
+    isLoop: false,
+    isRandom: false,
+    curTime: 0,
     err: {
       msg: "",
       show: false,
-    }
+    },
   }),
   actions: {
     setCurrentMedia(id: number) {
@@ -27,4 +30,5 @@ export const useAppStore = defineStore("app", {
       this.selected = x;
     },
   },
+  persist: true,
 });

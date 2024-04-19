@@ -61,7 +61,7 @@
       </template>
     </v-snackbar>
 
-    <AppFooter :current="appStore.myMediaList[appStore.currentMediaId]" />
+    <AppFooter />
   </v-app>
 </template>
 
