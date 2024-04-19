@@ -13,6 +13,7 @@
     <v-btn @click="changeTextfield('/storage/emulated/0/Android')">安卓</v-btn>
     <v-btn @click="changeTextfield('/storage/emulated/0/Musics')">Musics</v-btn>
     <v-btn @click="pageReload()">刷新</v-btn>
+    <v-btn @click="appS.reset();pageReload()">清除并刷新</v-btn>
 
     <a
       v-if="isTauri && isPC"

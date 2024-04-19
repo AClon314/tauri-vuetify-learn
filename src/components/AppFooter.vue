@@ -1,5 +1,5 @@
 <template>
-  <v-footer height="70px" app elevation="10">
+  <v-footer v-if="appS.currentMediaId >= 0" height="70px" app elevation="10">
     <v-slider
       thumb-label
       v-model="appS.curTime"
@@ -84,13 +84,12 @@ const appS = useAppStore();
 const appR = storeToRefs(appS);
 
 // 小心appS.currentMediaId<0时，数组会越界访问
-const current = () => {
-  if (appS.myMediaList) return appS.myMediaList[appS.currentMediaId];
-};
+const current = () => appS.myMediaList[appS.currentMediaId];
 const duration = ref(0);
 const progressInput: Ref<number | null> = ref(null);
+const isPlaying = ref(false);
 let audio: HTMLAudioElement | null = null;
-let isPlaying = ref(false);
+let everPlay = false;
 
 let pressTimer: any = null;
 let pressLock = false;
@@ -176,12 +175,15 @@ watch(appR.curTime, (accTime) => {
     audio.currentTime = accTime;
 });
 
-// const stopWatchCur = await appS.watchCurTime.stop();
-// const stopWatchS = await appS.watchS.stop();
+const isTauri = inject("isTauri");
 watch(appR.currentMediaId, (current) => {
   pause();
-  appS.curTime = 0;
   refresh();
-  play();
+  if (!isTauri || everPlay) {
+    // 临时补丁
+    appS.curTime = 0;
+    play();
+  }
+  everPlay = true;
 });
 </script>

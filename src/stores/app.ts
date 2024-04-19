@@ -46,20 +46,24 @@ export const useAppStore = defineStore(
               this.timerRepeat = null; // 坑爹
             }
             if (this.func) this.func(newState, this.key);
-            console.log(
-              "saved after debounce mode",
-              this.timerDebounce,
-              this.key,
-              newState
-            );
+            console.log("saved after debounce mode", this.key, newState);
           }, DEBOUNCE_TIME);
+
           if (!this.timerRepeat) {
             this.timerRepeat = setInterval(() => {
-              if (this.func) this.func(newState, this.key);
-              console.log("saved in repeat mode", this.timerRepeat, this.key);
+              if (this.func)
+                this.func(
+                  isRef(this.refer) ? this.refer.value : this.refer,
+                  this.key
+                );
+              console.log(
+                "saved in repeat mode",
+                this.key,
+                isRef(this.refer) ? this.refer.value : this.refer
+              );
             }, REPEAT_TIME);
             if (this.func) this.func(newState, this.key);
-            console.log("saved before repeat mode", this.timerRepeat, this.key);
+            console.log("saved before repeat mode", this.key, newState);
           }
         });
       }
@@ -73,51 +77,64 @@ export const useAppStore = defineStore(
      *
      * 假设：进度条秒数在播放后，是持续更新的；那么偶尔更新的变量，就叫非持续性变量.
      */
-    let initS = reactive({
-      myMediaList: [] as MediaItem[],
-      currentMediaId: 0,
-      selected: [] as number[],
-      isLoop: false,
-      isRandom: false,
-      err: {
-        msg: "",
-        show: false,
-      },
-      save2tau: false,
-    });
-    type UnwrapNestedRefs = typeof initS;
-    const initR = toRefs(initS);
+    const initS = () =>
+      reactive({
+        myMediaList: [] as MediaItem[],
+        currentMediaId: -1,
+        selected: [] as number[],
+        isLoop: false,
+        isRandom: false,
+        err: {
+          msg: "",
+          show: false,
+        },
+        isLoaded: false,
+        save2tau: false,
+      });
+    type UnwrapNestedRefs = ReturnType<typeof initS>;
+    let appS = initS();
+    const initR = toRefs(appS);
 
     function addCurrentId(x: number) {
-      initS.currentMediaId += initS.myMediaList.length + x;
-      initS.currentMediaId %= initS.myMediaList.length;
+      appS.currentMediaId += appS.myMediaList.length + x;
+      appS.currentMediaId %= appS.myMediaList.length;
     }
 
     if (isTauri) {
       console.log("tauGet");
-      tauGet().then((data: any) => {
-        if (data) {
-          console.log("hydrate", data.selected);
-          Object.assign(initS, data);
-        }
-      });
+      Promise.all([
+        tauGet().then((data: any) => {
+          if (data) {
+            console.log("hydrate", data.selected);
+            Object.assign(appS, data);
+          }
+        }),
 
-      tauGet("curTime").then((data) => {
-        if (data) {
-          console.log("hydrate", data);
-          curTime.value = data as number;
-        }
+        tauGet("curTime").then((data) => {
+          if (data) {
+            // console.log("hydrate", data);
+            curTime.value = data as number;
+          }
+        }),
+      ]).then(() => {
+        appS.isLoaded = true;
       });
     }
 
-    const watchS = new Watch(initS, tauSet).stop();
+    const watchS = new Watch(appS, tauSet).stop();
     const watchCurTime = new Watch(curTime, tauSet, "curTime").stop();
+
+    function reset() {
+      Object.assign(appS, initS());
+      curTime.value = 0;
+    }
 
     return {
       ...initR,
       curTime,
       watchS,
       watchCurTime,
+      reset,
       addCurrentId,
     };
   },
