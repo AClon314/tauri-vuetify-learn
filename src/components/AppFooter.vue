@@ -66,13 +66,7 @@
     ></v-btn>
     <v-btn
       @mousedown="startPress(appR.isRandom)"
-      @mouseup="
-        stopPress(() =>
-          appS.isRandom
-            ? next(Math.round(Math.random() * appS.myMediaList.length))
-            : next()
-        )
-      "
+      @mouseup="stopPress(() => (appS.isRandom ? nextRandom() : next()))"
       :active="appS.isRandom"
       :variant="appS.isRandom ? 'outlined' : 'text'"
       :color="appS.isRandom ? 'primary' : ''"
@@ -89,6 +83,7 @@ import { storeToRefs } from "pinia";
 const appS = useAppStore();
 const appR = storeToRefs(appS);
 
+// 小心appS.currentMediaId<0时，数组会越界访问
 const current = () => appS.myMediaList[appS.currentMediaId];
 const duration = ref(0);
 const progressInput: Ref<number | null> = ref(null);
@@ -111,9 +106,9 @@ function stopPress(func: () => void) {
     pressLock = false;
   }
 }
-onMounted(()=>{
+onMounted(() => {
   refresh();
-})
+});
 
 onUnmounted(() => {
   pause();
@@ -126,17 +121,16 @@ watch(appR.curTime, (accTime) => {
 });
 
 watch(current, (current) => {
-  pause(0);
-  appS.curTime = 0;
+  pause();
   refresh();
   if (audio) play();
 });
 
 function refresh() {
-  audio?.pause();
+  // console.log(appS.currentMediaId);
   if (current().url) {
     audio = new Audio(current().url);
-    console.log("audio", audio);
+    audio.currentTime = appS.curTime;
     audio.onloadedmetadata = () => {
       if (audio) duration.value = audio.duration;
     };
@@ -148,11 +142,11 @@ function refresh() {
         appS.curTime = 0;
         play();
       } else {
-        next();
+        if (appS.isRandom) nextRandom();
+        else next();
       }
     };
   } else {
-    pause();
     audio = null;
     appS.err.msg = `Unplayable ${current().name}`;
     appS.err.show = true;
@@ -172,12 +166,9 @@ function play() {
   }
 }
 
-function pause(goto: number | null = null) {
-  if (current().url && audio) {
-    audio.pause();
-    isPlaying = false;
-    if (goto !== null) appS.curTime = goto;
-  }
+function pause() {
+  audio?.pause();
+  isPlaying = false;
 }
 
 function switchPlay() {
@@ -189,10 +180,14 @@ function switchPlay() {
 }
 
 function next(add: number = 1) {
-  pause(0);
+  pause();
+  appS.curTime = 0;
   appS.addCurrentId(add);
   appS.setSelected([appS.currentMediaId]);
   // console.log(`+${add}=${appStore.currentMediaId}`);
 }
+
+function nextRandom() {
+  next(Math.ceil(Math.random() * (appS.myMediaList.length - 1)));
+}
 </script>
-@/plugins/refDebounced

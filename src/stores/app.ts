@@ -5,7 +5,7 @@ import { MediaItem } from "@/types";
 export const useAppStore = defineStore("app", {
   state: () => ({
     myMediaList: [] as MediaItem[],
-    currentMediaId: -1,
+    currentMediaId: 0,
     selected: [] as number[],
     isLoop: false,
     isRandom: false,
@@ -23,7 +23,7 @@ export const useAppStore = defineStore("app", {
       this.myMediaList = list;
     },
     addCurrentId(x: number) {
-      this.currentMediaId += x;
+      this.currentMediaId += this.myMediaList.length + x;
       this.currentMediaId %= this.myMediaList.length;
     },
     setSelected(x: number[]) {
