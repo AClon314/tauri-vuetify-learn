@@ -1,6 +1,15 @@
 # TODO
+- [ ] front service to keep music playing
 - [ ] android local storage access (readfile)
 - [ ] set photo as wallpaper
+
+# What I've learned?
+- vitest
+- my debounce implement
+- use ref for v-model, don't use appStore for v-model(especially with pinia-persist-plugin).
+persist() take 42ms,which cause laggy progress bar.
+- [key, value] = nameOf({myVar}); Objects.keys({myVar})[0]
+- Object.assign for substitute inside ref, without new Object\<Ref\>
 
 # Command
 ## update package version
