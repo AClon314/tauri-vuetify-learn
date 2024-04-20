@@ -87,7 +87,7 @@ const appR = storeToRefs(appS);
 
 // 小心appS.currentMediaId<0时，数组会越界访问
 const current = () => appS.myMediaList[appS.currentMediaId];
-const curTime = ref(0);
+const curTime = ref(appS.curTime);
 const duration = ref(0);
 const progressInput: Ref<number | null> = ref(null);
 const isPlaying = ref(false);
@@ -175,13 +175,12 @@ function nextRandom() {
 
 let tracker = new Tracker({ curTime }, (k, v) => {
   appS.tauSet(k, v);
-  curTime.value = v;
+  appS.curTime = v;
 });
 watch(curTime, (accTime) => {
-  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME) {
+  tracker.receiver(accTime);
+  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
     audio.currentTime = accTime;
-    tracker.receiver(accTime);
-  }
 });
 
 const isTauri = inject("isTauri");
