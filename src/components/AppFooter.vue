@@ -52,8 +52,9 @@
 
     <v-btn @click="next(-1)" variant="text" icon="mdi-skip-previous"></v-btn>
     <v-btn
-      @mousedown="startPress(appR.isLoop)"
-      @mouseup="stopPress(() => (isPlaying ? pause() : play()))"
+      @touchstart="startPress(appR.isLoop)"
+      @touchend="stopPress(() => (isPlaying ? pause() : play()))"
+      @click.right="appS.isLoop = !appS.isLoop"
       :active="appS.isLoop"
       :variant="appS.isLoop ? 'outlined' : 'text'"
       :color="appS.isLoop ? 'primary' : ''"
@@ -66,8 +67,9 @@
       "
     ></v-btn>
     <v-btn
-      @mousedown="startPress(appR.isRandom)"
-      @mouseup="stopPress(() => (appS.isRandom ? nextRandom() : next()))"
+      @touchstart="startPress(appR.isRandom)"
+      @touchend="stopPress(() => (appS.isRandom ? nextRandom() : next()))"
+      @click.right="appS.isRandom = !appS.isRandom"
       :active="appS.isRandom"
       :variant="appS.isRandom ? 'outlined' : 'text'"
       :color="appS.isRandom ? 'primary' : ''"
