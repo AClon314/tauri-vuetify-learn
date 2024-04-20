@@ -10,11 +10,13 @@ export const useAppStore = defineStore(
   "app",
   () => {
     const isTauri = inject("isTauri") as boolean;
-    async function tauSet(val: any, key: string) {
+    async function tauSet(key: string, val: any) {
       if (isTauri) return await tauS.set(key, val);
+      // else return localStorage.setItem(key, val);
     }
     async function tauGet(key: string) {
       if (isTauri) return await tauS.get(key);
+      // else return localStorage.getItem(key);
     }
 
     class Watch {
@@ -23,11 +25,11 @@ export const useAppStore = defineStore(
       constructor(
         public from: Ref<any> | UnwrapNestedRefs,
         public to?: Ref<any> | UnwrapNestedRefs | null,
-        public func?: Function
+        public func?: (key: string, val: any) => void
       ) {
         if (to == null) this.to = from;
-        console.error("Watcher", this);
-        this.timer = new DebounceTracker({to}, this.func);
+        // console.log("Watcher", this);
+        this.timer = new DebounceTracker({ to }, this.func);
       }
 
       stop() {
@@ -106,7 +108,6 @@ export const useAppStore = defineStore(
       watchS,
       tauSet,
       tauGet,
-      Watch,
       reset,
       addCurrentId,
     };

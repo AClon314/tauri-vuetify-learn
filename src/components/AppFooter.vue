@@ -81,6 +81,7 @@ const DELTA_CUR_TIME = 0.1;
 const LONG_PRESS_TIME = 700;
 import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
+import Tracker from "@/plugins/debounceTracker";
 const appS = useAppStore();
 const appR = storeToRefs(appS);
 
@@ -172,10 +173,15 @@ function nextRandom() {
   next(Math.ceil(Math.random() * (appS.myMediaList.length - 1)));
 }
 
+let tracker = new Tracker({ curTime }, (k, v) => {
+  appS.tauSet(k, v);
+  curTime.value = v;
+});
 watch(curTime, (accTime) => {
-  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
+  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME) {
     audio.currentTime = accTime;
-  // TODO
+    tracker.receiver(accTime);
+  }
 });
 
 const isTauri = inject("isTauri");

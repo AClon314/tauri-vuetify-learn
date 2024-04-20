@@ -1,11 +1,28 @@
 const DEBOUNCE_TIME = 1500;
 const REPEAT_TIME = 5000;
-type SetStorageFunc = Function | ((val: any, key: string) => void);
+type SetStorageFunc = (key: string, val: any) => void;
 
 export default class DebounceTracker {
   /** change `static` to `public` if you want */
-  static debounce_time = DEBOUNCE_TIME;
-  static repeat_time = REPEAT_TIME;
+  static _debounceTime = DEBOUNCE_TIME;
+  static _repeatTime = REPEAT_TIME;
+
+  // get debounceTime() {
+  //   return this._debounceTime;
+  // }
+  // get repeatTime() {
+  //   return this._repeatTime;
+  // }
+  // set debounceTime(val: number) {
+  //   if (val>=0) this._debounceTime = val;
+  //   else throw new Error("debounce_time must be a positive number");
+  //   if (val<=3) console.warn("debounce_time is too short, may cause performance issue");
+  // }
+  // set repeatTime(val: number) {
+  //   if (val>=0) this._repeatTime = val;
+  //   else throw new Error("repeat_time must be a positive number");
+  //   if (val<=3) console.warn("repeat_time is too short, may cause performance issue");
+  // }
 
   private timerDebounce: NodeJS.Timeout | null = null;
   private timerRepeat: NodeJS.Timeout | null = null;
@@ -80,7 +97,7 @@ export default class DebounceTracker {
    * ```
    */
   receiver(newState: any) {
-    console.log("watch", this.timerRepeat, this.timerDebounce);
+    // console.log("watch", this.timerRepeat, this.timerDebounce);
     if (this.timerDebounce) {
       clearTimeout(this.timerDebounce);
       this.timerDebounce = null;
@@ -93,21 +110,16 @@ export default class DebounceTracker {
       // save
       if (this.func) this.func(this.keyName, newState);
       console.log("saved after debounce mode", this.keyName, newState);
-    }, DEBOUNCE_TIME);
+    }, DebounceTracker._debounceTime);
 
     if (!this.timerRepeat) {
       this.timerRepeat = setInterval(() => {
         if (this.func) {
           // save, due to newState will keep constant incorrectly
           this.func(this.keyName, this.curVal);
+          console.log("saved in interval mode", this.keyName, this.curVal);
         }
-
-        console.log(
-          "saved in repeat mode",
-          this.keyName,
-          isRef(this.val) ? this.val.value : this.val
-        );
-      }, REPEAT_TIME);
+      }, DebounceTracker._repeatTime);
       // save
       if (this.func) this.func(this.keyName, newState);
       console.log("saved before repeat mode", this.keyName, newState);
