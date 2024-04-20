@@ -6,8 +6,8 @@
       variant="underlined"
       v-model="dirPath"
       append-icon="mdi-send"
-      @click:append="refresh()"
-      @keydown.enter="refresh()"
+      @click:append="refreshList()"
+      @keydown.enter="refreshList()"
     ></v-text-field>
     <v-btn @click="changeTextfield(defaultPath)">默认</v-btn>
     <v-btn @click="changeTextfield('/storage/emulated/0/Android')">安卓</v-btn>
@@ -58,10 +58,11 @@ const isTauri = inject("isTauri");
 const isPC = inject("isPC");
 const dirPath = ref();
 let defaultPath: string | undefined = undefined;
-refresh();
+refreshList();
 
-async function refresh() {
+async function refreshList() {
   if (isTauri) {
+    appS.$patch({ myMediaList: [],currentMediaId: -1, selected: []});
     let paths: MediaItem[] = [];
     if (dirPath.value == undefined) {
       // init dirPath
