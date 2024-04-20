@@ -81,7 +81,7 @@ const DELTA_CUR_TIME = 0.1;
 const LONG_PRESS_TIME = 700;
 import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
-import Tracker from "@/plugins/debounceTracker";
+import { DebounceTracker as Tracker } from "@/plugins/debounceTracker";
 const appS = useAppStore();
 const appR = storeToRefs(appS);
 

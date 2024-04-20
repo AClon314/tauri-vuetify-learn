@@ -2,7 +2,7 @@
 import { defineStore } from "pinia";
 import { MediaItem } from "@/types";
 import { Store } from "@tauri-apps/plugin-store";
-import DebounceTracker from "@/plugins/debounceTracker";
+import { DebounceTracker } from "@/plugins/debounceTracker";
 
 let tauS = new Store("app.bin");
 
@@ -11,6 +11,7 @@ export const useAppStore = defineStore(
   () => {
     const isTauri = inject("isTauri") as boolean;
     async function tauSet(key: string, val: any) {
+      console.log("tauSet", key, val);
       if (isTauri) return await tauS.set(key, val);
       // else return localStorage.setItem(key, val);
     }
@@ -19,21 +20,38 @@ export const useAppStore = defineStore(
       // else return localStorage.getItem(key);
     }
 
-    class Watch {
+    type RefOrReactive = Ref<any> | Reactive;
+    class DebounceStore {
       timer: DebounceTracker;
 
+      /**
+       * @param toStore - \{ var_u_want_store \}, eg: `{appStore}` `{myRef}`, key name auto-gereated from var name
+       * @param func - usually `setLocalStorage(key, value)`
+       * ---
+       * @example
+       * ```ts
+       * const appS_ready = new DebounceStore({appStore},setLocalStorage);
+       * const stopHandle = appS_ready().watch(); // start watching
+       * stopHandle(); // stop watching
+       * ```
+       */
       constructor(
-        public from: Ref<any> | UnwrapNestedRefs,
-        public to?: Ref<any> | UnwrapNestedRefs | null,
+        public toStore: Set<RefOrReactive> | Record<any,RefOrReactive>,
         public func?: (key: string, val: any) => void
       ) {
-        if (to == null) this.to = from;
-        // console.log("Watcher", this);
-        this.timer = new DebounceTracker({ to }, this.func);
+        this.timer = new DebounceTracker(toStore, this.func);
       }
 
-      stop() {
-        return watch(this.from, (newState) => this.timer.receiver(newState));
+      /**
+       * @param from - `Ref` , means watch `from`, store `to`
+       * @return stop - stop watching
+       * ---
+       * @example
+       * ```ts
+       *
+       */
+      watch(from: RefOrReactive) {
+        return watch(from, (newState) => this.timer.receiver(newState));
       }
     }
 
@@ -59,8 +77,8 @@ export const useAppStore = defineStore(
         isLoaded: false,
         save2tau: false,
       });
-    type UnwrapNestedRefs = ReturnType<typeof initS>;
-    let appS = initS();
+    type Reactive = ReturnType<typeof initS>;
+    const appS = initS();
     const initR = toRefs(appS);
 
     // actions
@@ -69,8 +87,9 @@ export const useAppStore = defineStore(
       appS.currentMediaId %= appS.myMediaList.length;
     }
 
+    // secondary init from tauri store
+    // tauGet("keyName"), keyName = varName is a must !!!
     if (isTauri) {
-      console.log("tauGet");
       Promise.all([
         tauGet("appS").then((data: any) => {
           if (data) {
@@ -92,7 +111,7 @@ export const useAppStore = defineStore(
     }
 
     // watchS is actually a handle, call watchS() to stop watching
-    const watchS = new Watch(appS).stop();
+    const watchS = new DebounceStore({appS},tauSet).watch(appS);
     // const watchCurTime = new Watch(curTime, "curTime").stop();
 
     // no $reset for setup pinia, so you need to define it yourself

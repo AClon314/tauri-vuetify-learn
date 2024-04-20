@@ -1,8 +1,9 @@
+import { nameOf } from "@/plugins/utils";
 const DEBOUNCE_TIME = 1500;
 const REPEAT_TIME = 5000;
 type SetStorageFunc = (key: string, val: any) => void;
 
-export default class DebounceTracker {
+export class DebounceTracker {
   /** change `static` to `public` if you want */
   static _debounceTime = DEBOUNCE_TIME;
   static _repeatTime = REPEAT_TIME;
@@ -54,10 +55,17 @@ export default class DebounceTracker {
    * setLocalStorage("myKey", true);
    * ```
    */
-  constructor(varInDict: any, public func?: SetStorageFunc) {
-    const value = Object.values(varInDict)[0];
+  constructor(
+    varInDict: Record<any, any> | Set<any>,
+    public func?: SetStorageFunc
+  ) {
+    let value; // need final in flutter
+    [this.keyName, value] = nameOf(varInDict);
+
+    // this.keyName = Object.keys(varInDict)[0];
+    // const value = Object.values(varInDict)[0];
+
     const typeOf = typeof value;
-    this.keyName = Object.keys(varInDict)[0];
     if (isRef(value)) {
       this.val = value;
       this.isRefFlag = true; // only check Ref ONCE !!!
