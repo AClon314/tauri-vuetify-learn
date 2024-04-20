@@ -1,15 +1,15 @@
 // Plugins
-import AutoImport from 'unplugin-auto-import/vite'
-import Components from 'unplugin-vue-components/vite'
-import Fonts from 'unplugin-fonts/vite'
-import Layouts from 'vite-plugin-vue-layouts'
-import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'unplugin-vue-router/vite'
-import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import Fonts from "unplugin-fonts/vite";
+import Layouts from "vite-plugin-vue-layouts";
+import Vue from "@vitejs/plugin-vue";
+import VueRouter from "unplugin-vue-router/vite";
+import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 // Utilities
-import { defineConfig } from 'vite'
-import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from "vite";
+import { fileURLToPath, URL } from "node:url";
 
 // Tauri
 import { internalIpV4 } from "internal-ip";
@@ -19,24 +19,24 @@ const mobile = !!/android|ios/.exec(process.env.TAURI_ENV_PLATFORM);
 export default defineConfig(async () => ({
   plugins: [
     VueRouter({
-      dts: 'src/typed-router.d.ts',
+      dts: "src/typed-router.d.ts",
     }),
     Layouts(),
     AutoImport({
       imports: [
-        'vue',
+        "vue",
         {
-          'vue-router/auto': ['useRoute', 'useRouter'],
-        }
+          "vue-router/auto": ["useRoute", "useRouter"],
+        },
       ],
-      dts: 'src/auto-imports.d.ts',
+      dts: "src/auto-imports.d.ts",
       eslintrc: {
         enabled: true,
       },
       vueTemplate: true,
     }),
     Components({
-      dts: 'src/components.d.ts',
+      dts: "src/components.d.ts",
     }),
     Vue({
       template: { transformAssetUrls },
@@ -45,36 +45,30 @@ export default defineConfig(async () => ({
     Vuetify({
       autoImport: true,
       styles: {
-        configFile: 'src/styles/settings.scss',
+        configFile: "src/styles/settings.scss",
       },
     }),
     Fonts({
       google: {
-        families: [ {
-          name: 'Roboto',
-          styles: 'wght@100;300;400;500;700;900',
-        }],
+        families: [
+          {
+            name: "Roboto",
+            styles: "wght@100;300;400;500;700;900",
+          },
+        ],
       },
     }),
   ],
-  define: { 'process.env': {} },
+  define: { "process.env": {} },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
-    extensions: [
-      '.js',
-      '.json',
-      '.jsx',
-      '.mjs',
-      '.ts',
-      '.tsx',
-      '.vue',
-    ],
+    extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
   },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // 1. prevent vite from obscuring rust errors
-  clearScreen:false,
+  clearScreen: false,
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
     cors: true,
@@ -93,5 +87,10 @@ export default defineConfig(async () => ({
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+  },
+  test: {
+    // onConsoleLog(log: string, type: "stdout" | "stderr"): boolean | void {
+    //   return !(type === "stdout");
+    // },
   },
 }));

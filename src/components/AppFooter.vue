@@ -2,12 +2,13 @@
   <v-footer v-if="appS.currentMediaId >= 0" height="70px" app elevation="10">
     <v-slider
       thumb-label
-      v-model="appS.curTime"
+      v-model="curTime"
       color="primary"
       track-color="primary"
       :max="duration"
       style="position: fixed; top: -15px; width: calc(100% - 45px)"
     ></v-slider>
+    <!-- @mouseup="audio!.currentTime = curTime;" -->
     <v-img
       v-if="current()?.cover"
       min-width="64px"
@@ -30,14 +31,14 @@
     <div style="line-height: 0.5; margin-bottom: 10px">
       <v-text-field
         v-model="progressInput"
-        :label="Math.floor(appS.curTime).toString()"
+        :label="Math.floor(curTime).toString()"
         @keyup.enter="
           () => {
-            if (progressInput) appS.curTime = progressInput;
+            if (progressInput) curTime = progressInput;
           }
         "
         @focus="
-          progressInput = Math.floor(appS.curTime);
+          progressInput = Math.floor(curTime);
           $nextTick(() => $event.target.select());
         "
         @blur="progressInput = null"
@@ -85,6 +86,7 @@ const appR = storeToRefs(appS);
 
 // 小心appS.currentMediaId<0时，数组会越界访问
 const current = () => appS.myMediaList[appS.currentMediaId];
+const curTime = ref(0);
 const duration = ref(0);
 const progressInput: Ref<number | null> = ref(null);
 const isPlaying = ref(false);
@@ -119,7 +121,7 @@ onUnmounted(() => {
 function refresh() {
   if (current()?.url) {
     audio = new Audio(current()?.url);
-    audio.currentTime = appS.curTime;
+    audio.currentTime = curTime.value;
     audio.onloadedmetadata = () => {
       if (audio) duration.value = audio.duration;
     };
@@ -127,11 +129,11 @@ function refresh() {
       console.error("Failed to load audio");
     };
     audio.ontimeupdate = () => {
-      appS.curTime = audio?.currentTime || 0;
+      curTime.value = audio?.currentTime || 0;
     };
     audio.onended = () => {
       if (appS.isLoop) {
-        appS.curTime = 0;
+        curTime.value = 0;
         play();
       } else {
         if (appS.isRandom) nextRandom();
@@ -160,7 +162,7 @@ function pause() {
 
 function next(add: number = 1) {
   pause();
-  appS.curTime = 0;
+  curTime.value = 0;
   appS.addCurrentId(add);
   appS.selected = [appS.currentMediaId];
   // console.log(`+${add}=${appStore.currentMediaId}`);
@@ -170,9 +172,10 @@ function nextRandom() {
   next(Math.ceil(Math.random() * (appS.myMediaList.length - 1)));
 }
 
-watch(appR.curTime, (accTime) => {
+watch(curTime, (accTime) => {
   if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
     audio.currentTime = accTime;
+  // TODO
 });
 
 const isTauri = inject("isTauri");
@@ -181,7 +184,7 @@ watch(appR.currentMediaId, (current) => {
   refresh();
   if (!isTauri || everPlay) {
     // 临时补丁
-    appS.curTime = 0;
+    curTime.value = 0;
     play();
   }
   everPlay = true;
