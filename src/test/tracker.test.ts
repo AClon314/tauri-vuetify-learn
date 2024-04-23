@@ -1,4 +1,4 @@
-import DebounceTracker from "@/plugins/debounceTracker";
+import {DebounceTracker} from "@/plugins/debounceTracker";
 import { expect, test, describe } from "vitest";
 
 describe("constructor src/plugins/debounceTracker.ts", () => {

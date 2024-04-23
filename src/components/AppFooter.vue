@@ -176,8 +176,8 @@ function play() {
   isPlaying.value = true;
   if (isTauri)
     startPersistentNotify(
-      `😉常驻通知栏成功`,
-      `${current()?.name} - ${current()?.alias}`
+      `${current()?.name}`,
+      `${current()?.alias}`
     );
 }
 
