@@ -11,7 +11,7 @@ export const useAppStore = defineStore(
   () => {
     const isTauri = inject("isTauri") as boolean;
     async function tauSet(key: string, val: any) {
-      console.log("tauSet", key, val);
+      // console.log("tauSet", key, val);
       if (isTauri) return await tauS.set(key, val);
       // else return localStorage.setItem(key, val);
     }

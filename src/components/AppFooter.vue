@@ -3,6 +3,8 @@
     <v-slider
       thumb-label
       v-model="curTime"
+      @mousedown="isDragging = true"
+      @mouseup="isDragging = false"
       color="primary"
       track-color="primary"
       :max="duration"
@@ -55,6 +57,7 @@
       @touchstart="startPress(appR.isLoop)"
       @touchend="stopPress(() => (isPlaying ? pause() : play()))"
       @click.right="appS.isLoop = !appS.isLoop"
+      @click="if (isPC) () => (isPlaying ? pause() : play());"
       :active="appS.isLoop"
       :variant="appS.isLoop ? 'outlined' : 'text'"
       :color="appS.isLoop ? 'primary' : ''"
@@ -70,6 +73,7 @@
       @touchstart="startPress(appR.isRandom)"
       @touchend="stopPress(() => (appS.isRandom ? nextRandom() : next()))"
       @click.right="appS.isRandom = !appS.isRandom"
+      @[isPC&&`click`]="appS.isRandom ? nextRandom() : next()"
       :active="appS.isRandom"
       :variant="appS.isRandom ? 'outlined' : 'text'"
       :color="appS.isRandom ? 'primary' : ''"
@@ -84,12 +88,11 @@ const LONG_PRESS_TIME = 700;
 import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
 import { DebounceTracker as Tracker } from "@/plugins/debounceTracker";
-// import { invoke } from "@tauri-apps/api/core";
+import { Howl } from "howler";
 import {
   startPersistentNotify,
   stopPersistentNotify,
 } from "@tauri-apps/plugin-permissionsx";
-import { invoke } from "@tauri-apps/api/core";
 const appS = useAppStore();
 const appR = storeToRefs(appS);
 
@@ -98,8 +101,9 @@ const current = () => appS.myMediaList[appS.currentMediaId];
 const curTime = ref(appS.curTime);
 const duration = ref(0);
 const progressInput: Ref<number | null> = ref(null);
+const isDragging = ref(false);
 const isPlaying = ref(false);
-let audio: HTMLAudioElement | null = null;
+let audio: Howl | null = null;
 let everPlay = false;
 
 let pressTimer: any = null;
@@ -127,20 +131,20 @@ onUnmounted(() => {
   audio = null;
 });
 
-function refresh() {
+function refresh(retryCount: number = 0) {
+  const maxRetries = 3;
   if (current()?.url) {
-    audio = new Audio(current()?.url);
-    audio.currentTime = curTime.value;
-    audio.onloadedmetadata = () => {
-      if (audio) duration.value = audio.duration;
-    };
-    audio.onerror = () => {
-      console.error("Failed to load audio");
-    };
-    audio.ontimeupdate = () => {
-      curTime.value = audio?.currentTime || 0;
-    };
-    audio.onended = () => {
+    const isHtml5 = !current()?.url.includes("localhost");
+    audio = new Howl({ src: [current()?.url], html5: isHtml5 });
+    audio.seek(curTime.value);
+    audio.on("load", () => {
+      if (audio) duration.value = audio.duration();
+    });
+    let updateInterval = setInterval(() => {
+      if (!isDragging.value) curTime.value = audio?.seek() || 0;
+    }, 100);
+    audio.on("end", () => {
+      clearInterval(updateInterval);
       if (appS.isLoop) {
         curTime.value = 0;
         play();
@@ -148,7 +152,17 @@ function refresh() {
         if (appS.isRandom) nextRandom();
         else next();
       }
-    };
+    });
+    audio.on("playerror", () => {
+      if (retryCount < maxRetries) {
+        console.warn(`Load retrying: ${retryCount}`);
+        refresh(retryCount + 1);
+      } else {
+        console.log("Failed to load audio after 3 retries");
+        pause();
+      }
+    });
+    if (retryCount > 0) play();
   } else {
     audio = null;
     appS.err.msg = `Unplayable ${current()?.name}`;
@@ -158,23 +172,19 @@ function refresh() {
 }
 
 function play() {
-  audio?.play().catch((e) => {
-    console.error("Failed to play audio", e);
-  });
+  audio?.play();
   isPlaying.value = true;
-  // startPersistentNotify(
-  //   `😉常驻通知栏成功`,
-  //   `${current()?.name} - ${current()?.alias}`
-  // );
-  invoke('plugin:permissionsx|startPersistentNotify',{title: `😉常驻通知栏成功`,content: `${current()?.name} - ${current()?.alias}`}).catch((e) => {
-    console.error(e);
-  });
+  if (isTauri)
+    startPersistentNotify(
+      `😉常驻通知栏成功`,
+      `${current()?.name} - ${current()?.alias}`
+    );
 }
 
 function pause() {
   audio?.pause();
   isPlaying.value = false;
-  stopPersistentNotify();
+  if (isTauri) stopPersistentNotify();
 }
 
 function next(add: number = 1) {
@@ -195,10 +205,15 @@ let tracker = new Tracker({ curTime }, (k, v) => {
 });
 watch(curTime, (accTime) => {
   tracker.receiver(accTime);
-  if (audio && Math.abs(accTime - audio.currentTime) > DELTA_CUR_TIME)
-    audio.currentTime = accTime;
+  if (audio && Math.abs(accTime - audio.seek()) > DELTA_CUR_TIME) {
+    audio.seek(accTime);
+    // audio.currentTime = accTime;
+  } else {
+    isDragging.value = false;
+  }
 });
 
+const isPC = inject("isPC");
 const isTauri = inject("isTauri");
 watch(appR.currentMediaId, (current) => {
   pause();
