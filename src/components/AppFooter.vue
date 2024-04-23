@@ -84,6 +84,12 @@ const LONG_PRESS_TIME = 700;
 import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
 import { DebounceTracker as Tracker } from "@/plugins/debounceTracker";
+// import { invoke } from "@tauri-apps/api/core";
+import {
+  startPersistentNotify,
+  stopPersistentNotify,
+} from "@tauri-apps/plugin-permissionsx";
+import { invoke } from "@tauri-apps/api/core";
 const appS = useAppStore();
 const appR = storeToRefs(appS);
 
@@ -156,11 +162,19 @@ function play() {
     console.error("Failed to play audio", e);
   });
   isPlaying.value = true;
+  // startPersistentNotify(
+  //   `😉常驻通知栏成功`,
+  //   `${current()?.name} - ${current()?.alias}`
+  // );
+  invoke('plugin:permissionsx|startPersistentNotify',{title: `😉常驻通知栏成功`,content: `${current()?.name} - ${current()?.alias}`}).catch((e) => {
+    console.error(e);
+  });
 }
 
 function pause() {
   audio?.pause();
   isPlaying.value = false;
+  stopPersistentNotify();
 }
 
 function next(add: number = 1) {

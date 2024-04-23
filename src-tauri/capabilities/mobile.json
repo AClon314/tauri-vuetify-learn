@@ -39,6 +39,8 @@
     "store:allow-get",
     "store:allow-set",
     "store:allow-save",
-    "store:allow-load"
+    "store:allow-load",
+    "permissionsx:allow-startPersistentNotify",
+    "permissionsx:allow-stopPersistentNotify"
   ]
 }

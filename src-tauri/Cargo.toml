@@ -21,4 +21,4 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-fs = "2.0.0-beta.3"
 tauri-plugin-store = "2.0.0-beta.5"
-
+tauri-plugin-permissionsx = { path = "../../tauri-plugin-permissions/" }

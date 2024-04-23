@@ -14,6 +14,9 @@ dependencies:
   '@tauri-apps/plugin-fs':
     specifier: ^2.0.0-beta.2
     version: 2.0.0-beta.2
+  '@tauri-apps/plugin-permissionsx':
+    specifier: file:../tauri-plugin-permissions
+    version: file:../tauri-plugin-permissions
   '@tauri-apps/plugin-shell':
     specifier: '>=2.0.0-beta.0'
     version: 2.0.0-beta.2
@@ -3954,3 +3957,10 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
     dev: true
+
+  file:../tauri-plugin-permissions:
+    resolution: {directory: ../tauri-plugin-permissions, type: directory}
+    name: tauri-plugin-permissionsx-api
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.7
+    dev: false
