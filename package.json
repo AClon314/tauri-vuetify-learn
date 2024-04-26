@@ -57,7 +57,9 @@
     "tauri": "tauri",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "dist":"http-server ./dist -p 1420 --proxy http://localhost:1420?",
+    "build:apk":"tauri android build -t aarch64 --apk"
   },
   "type": "module",
   "version": "0.0.0"

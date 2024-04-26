@@ -57,7 +57,7 @@
       @touchstart="startPress(appR.isLoop)"
       @touchend="stopPress(() => (isPlaying ? pause() : play()))"
       @click.right="appS.isLoop = !appS.isLoop"
-      @click="if (isPC) () => (isPlaying ? pause() : play());"
+      @[isPC&&`click`]="isPlaying ? pause() : play()"
       :active="appS.isLoop"
       :variant="appS.isLoop ? 'outlined' : 'text'"
       :color="appS.isLoop ? 'primary' : ''"
