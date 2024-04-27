@@ -1,7 +1,6 @@
-# TODO
-- [ ] front service to keep music playing
-- [ ] android local storage access (readfile)
-- [ ] set photo as wallpaper
+# Screenshots
+![Windows11](https://github.com/AClon314/tauri-vuetify-learn/assets/30747832/a80eb945-f067-4bc9-b6b1-944264afa5fa)
+<img src="https://github.com/AClon314/tauri-vuetify-learn/assets/30747832/b3ea90f7-784c-4bbe-932c-1a77183c4fe1" alt="Android 10" height="600" />
 
 # What I've learned?
 - vitest
@@ -17,6 +16,9 @@ persist() take 42ms,which cause laggy progress bar.
 - 如何加快MP3本地文件缓冲，10MB会卡顿1~3s左右。使用tauri.localhost情况下
 - 不使用vuetify字体内嵌，节约1~2MB
 - 通知栏不能stopNotify，否则马上后台杀掉
+
+# TODO
+- [x] set photo as wallpaper
 
 # Command
 ## update package version
