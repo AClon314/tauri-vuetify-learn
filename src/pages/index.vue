@@ -67,6 +67,7 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import * as tauPath from "@tauri-apps/api/path";
+import { askDir } from "@/plugins/askBaseDir";
 
 const isTauri = inject("isTauri");
 const isPC = inject("isPC");
@@ -80,7 +81,7 @@ async function refresh() {
     if (pictureDirPath.value == undefined) {
       // init pictureDirPath
       pictureDirPath.value = await tauPath.pictureDir();
-      paths = await ls(`${await bDir2str(BaseDirectory.Picture)}`);
+      paths = await ls(`${await askDir(BaseDirectory.Picture)}`);
     } else {
       paths = await ls(pictureDirPath.value);
     }
@@ -103,10 +104,6 @@ async function refresh() {
 
 function pageReload() {
   location.reload();
-}
-
-async function bDir2str(base: BaseDirectory): Promise<string> {
-  return await eval(`tauPath.${BaseDirectory[base].toLocaleLowerCase()}Dir()`);
 }
 
 async function ls(dir: string, recursive = false) {

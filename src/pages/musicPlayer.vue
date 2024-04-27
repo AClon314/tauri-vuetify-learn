@@ -13,7 +13,13 @@
     <v-btn @click="changeTextfield('/storage/emulated/0/Android')">安卓</v-btn>
     <v-btn @click="changeTextfield('/storage/emulated/0/Musics')">Musics</v-btn>
     <v-btn @click="pageReload()">刷新</v-btn>
-    <v-btn @click="appS.reset();pageReload()">清除并刷新</v-btn>
+    <v-btn
+      @click="
+        appS.reset();
+        pageReload();
+      "
+      >清除并刷新</v-btn
+    >
 
     <a
       v-if="isTauri && isPC"
@@ -46,6 +52,7 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import * as tauPath from "@tauri-apps/api/path";
 import * as tauFs from "@tauri-apps/plugin-fs";
+import { askDir } from "@/plugins/askBaseDir";
 
 import { inject, ref } from "vue";
 import { useAppStore } from "@/stores/app";
@@ -62,12 +69,12 @@ refreshList();
 
 async function refreshList() {
   if (isTauri) {
-    appS.$patch({ myMediaList: [],currentMediaId: -1, selected: []});
+    appS.$patch({ myMediaList: [], currentMediaId: -1, selected: [] });
     let paths: MediaItem[] = [];
     if (dirPath.value == undefined) {
       // init dirPath
       defaultPath = await tauPath.audioDir();
-      paths = await ls(`${await bDir2str(tauFs.BaseDirectory.Audio)}`);
+      paths = await ls(`${await askDir(tauFs.BaseDirectory.Audio)}`);
     } else {
       paths = await ls(dirPath.value);
     }
@@ -138,12 +145,6 @@ async function refreshList() {
 
 function pageReload() {
   location.reload();
-}
-
-async function bDir2str(base: tauFs.BaseDirectory): Promise<string> {
-  return await eval(
-    `tauPath.${tauFs.BaseDirectory[base].toLocaleLowerCase()}Dir()`
-  );
 }
 
 async function ls(dir: string, recursive = false): Promise<MediaItem[]> {
