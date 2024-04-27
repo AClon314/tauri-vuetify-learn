@@ -6,6 +6,7 @@ import Layouts from "vite-plugin-vue-layouts";
 import Vue from "@vitejs/plugin-vue";
 import VueRouter from "unplugin-vue-router/vite";
 import Vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // Utilities
 import { defineConfig } from "vite";
@@ -18,6 +19,7 @@ const mobile = !!/android|ios/.exec(process.env.TAURI_ENV_PLATFORM);
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [
+    nodePolyfills(),
     VueRouter({
       dts: "src/typed-router.d.ts",
     }),

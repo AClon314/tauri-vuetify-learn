@@ -41,6 +41,7 @@
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-router": "^0.8.6",
     "vite": "^5.2.9",
+    "vite-plugin-node-polyfills": "^0.21.0",
     "vite-plugin-vue-layouts": "^0.11.0",
     "vite-plugin-vuetify": "^2.0.3",
     "vitest": "^1.5.0",
@@ -58,10 +59,11 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "dist":"http-server ./dist -p 1420 --proxy http://localhost:1420?",
-    "build:apk":"tauri android build -t aarch64 --apk",
-    "debug:apk":"tauri android build --debug -t aarch64 --apk",
-    "build:pc":"tauri build -b nsis"
+    "dist": "http-server ./dist -p 1420 --proxy http://localhost:1420?",
+    "build:apk": "tauri android build -t aarch64 --apk",
+    "debug:apk": "tauri android build --debug -t aarch64 --apk",
+    "build:pc": "tauri build -b nsis",
+    "debug:pc": "tauri build --debug -b nsis"
   },
   "type": "module",
   "version": "0.0.0"
