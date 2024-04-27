@@ -1,3 +1,3 @@
-package com.tauri.tauri_app
+package com.tauri.my_tauri_viewer
 
 class MainActivity : TauriActivity()

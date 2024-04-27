@@ -1705,6 +1705,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "my-tauri-viewer"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-fs",
+ "tauri-plugin-permissionsx",
+ "tauri-plugin-shell",
+ "tauri-plugin-store",
+]
+
+[[package]]
 name = "ndk"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2976,20 +2990,6 @@ dependencies = [
  "webview2-com",
  "window-vibrancy",
  "windows 0.56.0",
-]
-
-[[package]]
-name = "tauri-app"
-version = "0.0.0"
-dependencies = [
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-fs",
- "tauri-plugin-permissionsx",
- "tauri-plugin-shell",
- "tauri-plugin-store",
 ]
 
 [[package]]
