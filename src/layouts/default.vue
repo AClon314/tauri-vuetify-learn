@@ -54,7 +54,8 @@
       <router-view />
     </v-main>
 
-    <v-snackbar v-model="appStore.err.show">
+    <!-- tauri/浏览器原生通知 -->
+    <!-- <v-snackbar v-model="appStore.err.show">
       {{ appStore.err.msg }}
       <template v-slot:actions>
         <v-btn
@@ -64,7 +65,8 @@
         >
         </v-btn>
       </template>
-    </v-snackbar>
+    </v-snackbar> -->
+
     <AppFooter />
   </v-app>
 </template>
@@ -72,8 +74,8 @@
 <script lang="ts" setup>
 import { getCurrent as wd } from "@tauri-apps/api/window";
 import { useTheme } from "vuetify";
-import { useAppStore } from "@/stores/app";
-const appStore = useAppStore();
+// import { useAppStore } from "@/stores/app";
+// const appStore = useAppStore();
 
 const isPC = inject("isPC");
 const isFocused = ref(false);
