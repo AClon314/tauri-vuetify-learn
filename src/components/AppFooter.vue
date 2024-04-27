@@ -220,7 +220,7 @@ watch(appR.currentMediaId, (current) => {
   refresh();
   if (!isTauri || everPlay) {
     // 临时补丁
-    curTime.value = 0;
+    audio?.seek(0);
     play();
   }
   everPlay = true;
