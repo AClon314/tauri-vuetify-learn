@@ -1,0 +1,3 @@
+[submodule "public/tauri-plugin-permissionsX"]
+	path = public/tauri-plugin-permissionsX
+	url = https://github.com/AClon314/tauri-plugin-permissionsX.git
