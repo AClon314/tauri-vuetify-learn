@@ -89,10 +89,10 @@ import { useAppStore } from "@/stores/app";
 import { storeToRefs } from "pinia";
 import { DebounceTracker as Tracker } from "@/plugins/debounceTracker";
 import { Howl } from "howler";
-import {
-  startPersistentNotify,
-  stopPersistentNotify,
-} from "@tauri-apps/plugin-permissionsx";
+// import {
+//   startPersistentNotify,
+//   stopPersistentNotify,
+// } from "@tauri-apps/plugin-permissionsx";
 const appS = useAppStore();
 const appR = storeToRefs(appS);
 
@@ -174,17 +174,17 @@ function refresh(retryCount: number = 0) {
 function play() {
   audio?.play();
   isPlaying.value = true;
-  if (isTauri)
-    startPersistentNotify(
-      `${current()?.name}`,
-      `${current()?.alias}`
-    );
+  // if (isTauri)
+    // startPersistentNotify(
+    //   `${current()?.name}`,
+    //   `${current()?.alias}`
+    // );
 }
 
 function pause() {
   audio?.pause();
   isPlaying.value = false;
-  if (isTauri) stopPersistentNotify();
+  // if (isTauri) stopPersistentNotify();
 }
 
 function next(add: number = 1) {
