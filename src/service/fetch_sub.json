@@ -1,0 +1,43 @@
+{
+"datetime": "2024-05-10",
+"datetimeEpoch": 1715270400,
+"tempmax": 26.7,
+"tempmin": 20.4,
+"temp": 22.9,
+"feelslikemax": 26.7,
+"feelslikemin": 20.4,
+"feelslike": 22.9,
+"dew": 18.2,
+"humidity": 75.7,
+"precip": 5.1,
+"precipprob": 100,
+"precipcover": 41.67,
+"preciptype": [
+    "rain"
+],
+"snow": 0,
+"snowdepth": 0,
+"windgust": 24.5,
+"windspeed": 14.4,
+"winddir": 206.3,
+"pressure": 1012.8,
+"cloudcover": 99.4,
+"visibility": 20.6,
+"solarradiation": 142,
+"solarenergy": 12.2,
+"uvindex": 6,
+"severerisk": 10,
+"sunrise": "05:28:40",
+"sunriseEpoch": 1715290120,
+"sunset": "18:57:27",
+"sunsetEpoch": 1715338647,
+"moonphase": 0.07,
+"conditions": "Rain, Overcast",
+"description": "Cloudy skies throughout the day with rain.",
+"icon": "rain",
+"stations": [
+    "remote"
+],
+"source": "comb",
+"hours": []
+}
